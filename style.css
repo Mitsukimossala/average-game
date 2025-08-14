@@ -53,3 +53,32 @@ button:hover {
   font-size: 18px;
   margin-right: 2px;
 }
+
+.player-number {
+  display: inline-block;
+  margin: 10px;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  border: 2px solid #ff003c;
+  border-radius: 50%;
+  color: #fff;
+  background-color: #222;
+  text-align: center;
+  position: relative;
+}
+
+.player-name {
+  position: absolute;
+  top: -20px;
+  width: 100%;
+  text-align: center;
+  color: #ff003c;
+  font-weight: bold;
+}
+
+.winner {
+  background-color: #00ff00;
+  box-shadow: 0 0 15px #00ff00;
+}
+
