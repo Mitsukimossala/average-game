@@ -19,38 +19,56 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-// Variables
-let playerRef = null;
-const submitBtn = document.getElementById('submitBtn');
-const endRoundBtn = document.getElementById('endRoundBtn');
-const playersContainer = document.getElementById('numbersContainer');
-const message = document.getElementById('message');
+// DOM Elements
 const nameInput = document.getElementById('playerName');
+const changeNameBtn = document.getElementById('changeNameBtn');
 const guessInput = document.getElementById('playerGuess');
+const submitBtn = document.querySelector('#playerInputSection button');
+const numbersContainer = document.getElementById('numbersContainer');
+const messageEl = document.getElementById('message');
 
-// Vérifier si le nom est déjà dans localStorage
-let playerName = localStorage.getItem('playerName');
+// Player variables
+let playerName = localStorage.getItem('playerName') || '';
+let playerRef = null;
+
+// Si le joueur a déjà un nom
 if(playerName){
   nameInput.value = playerName;
   nameInput.readOnly = true;
 }
 
-// Soumettre un joueur
+// Changer de nom
+changeNameBtn.addEventListener('click', () => {
+  nameInput.readOnly = false;
+  nameInput.value = '';
+  localStorage.removeItem('playerName');
+  playerName = '';
+  if(playerRef){
+    remove(playerRef);
+    playerRef = null;
+  }
+});
+
+// Soumettre le guess
 submitBtn.addEventListener('click', () => {
-  let name = nameInput.value.trim();
   const guess = parseInt(guessInput.value);
 
-  if(!name || isNaN(guess) || guess < 0 || guess > 100) return alert("Nom ou nombre invalide");
-
-  // Enregistrer le nom dans localStorage si c'est la première fois
+  // Vérifier le nom
   if(!playerName){
+    const name = nameInput.value.trim();
+    if(!name) return alert('Veuillez entrer un nom');
     playerName = name;
     localStorage.setItem('playerName', playerName);
     nameInput.readOnly = true;
   }
 
+  if(isNaN(guess) || guess < 0 || guess > 100){
+    return alert("Veuillez entrer un nombre entre 0 et 100");
+  }
+
+  // Envoyer guess à Firebase
   if(!playerRef){
-    playerRef = push(ref(db,'players'));
+    playerRef = push(ref(db, 'players'));
     set(playerRef, { name: playerName, guess, score: 10 });
   } else {
     update(playerRef, { guess });
@@ -59,82 +77,66 @@ submitBtn.addEventListener('click', () => {
   guessInput.value = '';
 });
 
-// Écoute joueurs temps réel
+// Écouter tous les joueurs
 let currentPlayers = {};
-onValue(ref(db,'players'), snapshot => {
+onValue(ref(db, 'players'), snapshot => {
   const data = snapshot.val() || {};
   currentPlayers = data;
-  playersContainer.innerHTML = '';
+
+  numbersContainer.innerHTML = '';
   Object.values(data).forEach(p => {
     const div = document.createElement('div');
     div.className = 'player-number';
     div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
-    playersContainer.appendChild(div);
+    numbersContainer.appendChild(div);
   });
 });
 
-// Fin de manche
-endRoundBtn.addEventListener('click', () => {
+// Terminer la manche
+window.endRound = function(){
   const playerList = Object.entries(currentPlayers).map(([id,p]) => ({...p, id}));
   if(playerList.length < 2){ alert('Au moins deux joueurs nécessaires'); return; }
 
-  // Clear résultat
-  message.textContent = '';
-  playersContainer.innerHTML = '';
+  const sum = playerList.reduce((a,p) => a + p.guess, 0);
+  const target = sum / playerList.length * 0.8;
 
-  const sum = playerList.reduce((acc,p)=>acc+p.guess,0);
-  const target = sum/playerList.length*0.8;
-
-  // Doublons
+  // Compter doublons
   const counts = {};
   playerList.forEach(p => counts[p.guess] = (counts[p.guess]||0)+1);
 
-  // Trouver gagnant
+  // Déterminer gagnant
   let winner = null;
   let minDiff = Infinity;
-  playerList.forEach(p=>{
-    if(counts[p.guess]>1) return;
-    const diff = Math.abs(p.guess-target);
-    if(diff<minDiff){ minDiff=diff; winner=p; }
+  playerList.forEach(p => {
+    if(counts[p.guess] > 1) return; // doublon, impossible de gagner
+    const diff = Math.abs(p.guess - target);
+    if(diff < minDiff){ minDiff = diff; winner = p; }
   });
 
-  // Animation suspense
-  let i=0;
-  const interval = setInterval(()=>{
-    if(i>=playerList.length){ clearInterval(interval); showWinner(); return; }
-    const p = playerList[i];
+  // Mettre à jour scores
+  playerList.forEach(p => {
+    let newScore = p.score;
+    if(counts[p.guess] > 1) newScore -= 2;
+    else if(p === winner) newScore += 1;
+    else newScore -= 1;
+
+    // Vérifier élimination
+    if(newScore <= -10){
+      remove(ref(db, 'players/' + p.id));
+    } else {
+      update(ref(db, 'players/' + p.id), { score: newScore });
+    }
+  });
+
+  // Affichage final
+  numbersContainer.innerHTML = '';
+  playerList.forEach(p => {
     const div = document.createElement('div');
-    div.className='player-number';
-    div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess}`;
-    playersContainer.appendChild(div);
-    i++;
-  }, 300);
+    div.className = 'player-number';
+    if(p === winner) div.classList.add('winner');
+    div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+    numbersContainer.appendChild(div);
+  });
 
-  function showWinner(){
-    // Update scores
-    playerList.forEach(p=>{
-      let newScore = p.score;
-      if(counts[p.guess]>1) newScore-=2;
-      else if(p===winner) newScore+=1;
-      else newScore-=1;
-
-      if(newScore<=-10){
-        remove(ref(db,'players/'+p.id));
-      } else {
-        update(ref(db,'players/'+p.id),{score:newScore});
-      }
-    });
-
-    // Affichage final
-    playersContainer.innerHTML='';
-    playerList.forEach(p=>{
-      const div = document.createElement('div');
-      div.className='player-number';
-      if(p===winner) div.classList.add('winner');
-      div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
-      playersContainer.appendChild(div);
-    });
-
-    message.textContent=`Somme: ${sum}, Moyenne ×0.8: ${target.toFixed(2)}, Gagnant: ${winner?winner.name:'Aucun'}`;
-  }
-});
+  messageEl.textContent = `Somme: ${sum}, Moyenne × 0.8: ${target.toFixed(2)}, Gagnant: ${winner ? winner.name : 'Aucun'}`;
+}
