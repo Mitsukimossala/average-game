@@ -10,16 +10,19 @@
   <div id="game">
     <h1>Jeu de la Moyenne</h1>
     <div id="playerInputSection">
-      <input type="text" id="playerName" placeholder="Entrez votre nom" readonly>
+      <input type="text" id="playerName" placeholder="Entrez votre nom">
+      <button id="changeNameBtn">Changer de nom</button>
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
-      <button id="submitBtn">Soumettre</button>
+      <button>Soumettre</button>
     </div>
+
     <div id="gameStatus">
       <p id="score">Score: 10</p>
       <p id="status">Survie: Oui</p>
     </div>
+
     <div id="roundResults">
-      <button id="endRoundBtn">Terminer la Manche</button>
+      <button onclick="endRound()">Terminer la Manche</button>
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
@@ -28,4 +31,3 @@
   <script type="module" src="script.js"></script>
 </body>
 </html>
-
