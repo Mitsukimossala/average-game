@@ -3,49 +3,45 @@ let round = 0;
 let playerScore = 10;
 let isAlive = true;
 
-// Si prénom déjà en session, afficher dans le champ
+// Si un prénom est déjà en session, l'afficher
+const nameInput = document.getElementById('playerName');
 const storedName = sessionStorage.getItem('playerName');
 if (storedName) {
-  document.getElementById('playerName').value = storedName;
-  document.getElementById('playerName').style.color = '#fff';
+  nameInput.value = storedName;
+  nameInput.style.color = '#fff';
 }
 
-// Bouton Soumettre
-document.getElementById('submitBtn').addEventListener('click', submitGuess);
+// Soumettre un joueur
+window.submitPlayer = function() {
+  let playerName = nameInput.value.trim();
+  let playerGuess = parseInt(document.getElementById('playerGuess').value);
 
-// Bouton Terminer la Manche
-document.getElementById('endRoundBtn').addEventListener('click', endRound);
-
-function submitGuess() {
-  const nameInput = document.getElementById('playerName');
-  const guessInput = document.getElementById('playerGuess');
-
-  let name = nameInput.value.trim();
-  let guess = parseInt(guessInput.value);
-
-  if (!name || isNaN(guess) || guess < 0 || guess > 100) {
-    return alert('Veuillez entrer un nom valide et un nombre entre 0 et 100.');
+  if (!playerName || isNaN(playerGuess) || playerGuess < 0 || playerGuess > 100) {
+    alert('Veuillez entrer un nom valide et un nombre entre 0 et 100.');
+    return;
   }
 
   // Stocker le prénom en session
-  sessionStorage.setItem('playerName', name);
+  sessionStorage.setItem('playerName', playerName);
   nameInput.style.color = '#fff';
 
-  // Ajouter ou mettre à jour le joueur
-  let existing = players.find(p => p.name === name);
+  // Ajouter ou mettre à jour le joueur dans le tableau local
+  let existing = players.find(p => p.name === playerName);
   if (!existing) {
-    players.push({ name, guess, score: playerScore });
+    players.push({ name: playerName, guess: playerGuess, score: playerScore });
   } else {
-    existing.guess = guess; // Met à jour le dernier choix
+    existing.guess = playerGuess; // Met à jour le dernier choix
   }
 
-  guessInput.value = '';
+  document.getElementById('playerGuess').value = '';
   updateGameStatus();
 }
 
-function endRound() {
+// Terminer la manche
+window.endRound = function() {
   if (players.length < 2) {
-    return alert('Au moins deux joueurs sont nécessaires pour commencer la manche.');
+    alert('Au moins deux joueurs sont nécessaires pour commencer la manche.');
+    return;
   }
 
   const sum = players.reduce((acc, p) => acc + p.guess, 0);
@@ -55,11 +51,11 @@ function endRound() {
   const counts = {};
   players.forEach(p => counts[p.guess] = (counts[p.guess] || 0) + 1);
 
-  // Déterminer gagnant
+  // Déterminer le gagnant
   let winner = null;
   let minDiff = Infinity;
   players.forEach(p => {
-    if (counts[p.guess] > 1) return; // doublon impossible
+    if (counts[p.guess] > 1) return; // doublon impossible de gagner
     const diff = Math.abs(p.guess - target);
     if (diff < minDiff) {
       minDiff = diff;
@@ -67,7 +63,7 @@ function endRound() {
     }
   });
 
-  // Mettre à jour scores
+  // Mettre à jour les scores
   players.forEach(p => {
     if (counts[p.guess] > 1) p.score -= 2;
     else if (p === winner) p.score += 1;
@@ -78,8 +74,13 @@ function endRound() {
 
   displayRoundResults(winner, sum, target);
   round++;
+
+  // Préparer la manche suivante (réinitialiser les guesses)
+  players.forEach(p => p.guess = 0);
+  document.getElementById('playerGuess').value = '';
 }
 
+// Afficher résultats de la manche
 function displayRoundResults(winner, sum, target) {
   const container = document.getElementById('numbersContainer');
   container.innerHTML = '';
@@ -98,6 +99,7 @@ function displayRoundResults(winner, sum, target) {
   updateGameStatus();
 }
 
+// Mettre à jour le statut du joueur
 function updateGameStatus() {
   document.getElementById('score').textContent = `Score: ${playerScore}`;
   document.getElementById('status').textContent = isAlive ? 'Survie: Oui' : 'Éliminé';
