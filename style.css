@@ -1,192 +1,51 @@
-/* Définir une palette de couleurs sombres et néon */
-:root {
-  --bg-color: #0c0c0c; /* Fond sombre */
-  --primary-color: #ff0000; /* Rouge néon */
-  --secondary-color: #00ff00; /* Vert néon pour le gagnant */
-  --accent-color: #ffcc00; /* Jaune pour les éléments cliquables */
-  --text-color: #fff; /* Texte blanc */
-  --border-color: #ff5555; /* Bordures rouge sombre */
-  --button-hover: #cc0000; /* Hover sur les boutons */
-}
-
-/* Fond général de la page */
 body {
   font-family: 'Courier New', Courier, monospace;
-  background: var(--bg-color);
-  color: var(--text-color);
+  background: #0c0c0c;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
-  overflow: hidden;
 }
 
-/* Container du jeu */
-#game {
-  text-align: center;
-  background: rgba(20, 20, 20, 0.9);
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 0 20px var(--primary-color);
-  width: 400px;
-  position: relative;
-  overflow: hidden;
-}
+.page { text-align: center; }
+.hidden { display: none; }
 
-/* Style des champs de saisie */
-input[type="text"], input[type="number"] {
-  padding: 12px;
-  margin: 12px;
-  border: 2px solid var(--border-color);
+input, button {
+  padding: 10px;
+  margin: 10px;
   border-radius: 5px;
-  background: #222;
-  color: var(--text-color);
-  font-size: 16px;
-  transition: border 0.3s ease;
 }
 
-/* Animation des champs de saisie au focus */
-input[type="text"]:focus, input[type="number"]:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
-
-/* Style des boutons */
 button {
-  padding: 15px 30px;
-  background: var(--primary-color);
+  background: #ff0000;
   border: none;
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 16px;
+  color: #fff;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  transition: 0.3s;
 }
+button:hover { background: #cc0000; }
 
-button:hover {
-  background: var(--button-hover);
-  transform: scale(1.05);
-}
-
-/* Effet visuel sur les boutons avec des animations */
-button::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 300%;
-  height: 300%;
-  background: var(--accent-color);
-  transition: width 0.5s, height 0.5s, top 0.5s, left 0.5s;
-  border-radius: 50%;
-  z-index: 0;
-  transform: translate(-50%, -50%);
-}
-
-button:hover::after {
-  width: 0;
-  height: 0;
-  top: 50%;
-  left: 50%;
-}
-
-/* Zone de résultats et de statistiques */
-#gameStatus {
-  margin-top: 20px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-#gameStatus p {
-  margin: 5px 0;
-}
-
-/* Conteneur des numéros de joueurs */
 #numbersContainer {
   display: flex;
   justify-content: center;
   margin-top: 20px;
 }
-
 .player-number {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   margin: 10px;
-  border: 3px solid var(--border-color);
+  border: 2px solid #ff0000;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 20px;
   background: #333;
-  color: var(--text-color);
-  opacity: 0;
-  animation: fadeIn 1s forwards;
-  position: relative;
-  box-shadow: 0 0 10px var(--primary-color);
+  color: #fff;
 }
-
-/* Animation des numéros des joueurs */
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* Style pour le gagnant */
 .winner {
-  background: var(--secondary-color);
-  box-shadow: 0 0 20px var(--secondary-color);
-  transform: scale(1.1);
-  transition: transform 0.3s ease-in-out;
-}
-
-.player-number .player-name {
-  font-weight: bold;
-}
-
-/* Section des messages */
-#message {
-  margin-top: 20px;
-  font-size: 18px;
-  color: var(--primary-color);
-  text-shadow: 0 0 5px var(--primary-color);
-  font-family: 'Courier New', Courier, monospace;
-  letter-spacing: 1px;
-}
-
-/* Affichage d'un joueur éliminé */
-.eliminated {
-  opacity: 0.4;
-  text-decoration: line-through;
-}
-
-/* Ajout d'animation pour les résultats */
-#roundResults {
-  margin-top: 20px;
-}
-
-/* Section Nouvelle Partie */
-#newGameSection {
-  margin-top: 30px;
-  display: none;
-}
-
-#newGameSection button {
-  padding: 12px 25px;
-  background: #333;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s;
-  font-weight: bold;
-}
-
-#newGameSection button:hover {
-  background: var(--primary-color);
-  color: var(--text-color);
+  background: #00ff00;
+  box-shadow: 0 0 15px #00ff00;
 }
