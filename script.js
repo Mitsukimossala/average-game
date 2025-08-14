@@ -1,127 +1,124 @@
-// =================== CONFIG ===================
-// Générer un ID unique pour chaque joueur
-let playerId = 'player_' + Math.floor(Math.random() * 100000);
-let score = 0;
-let alive = true;
-let playerName = "";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeu de la Moyenne - Alice in Borderland</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game">
+    <h1>Jeu de la Moyenne</h1>
+    <div id="playerInputSection">
+      <input type="text" id="playerName" placeholder="Entrez votre nom">
+      <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
+      <button onclick="submitPlayer()">Soumettre</button>
+    </div>
+    <div id="gameStatus">
+      <p id="score">Score: 10</p>
+      <p id="status">Survie: Oui</p>
+    </div>
+    <div id="roundResults">
+      <button onclick="endRound()">Terminer la Manche</button>
+      <div id="numbersContainer"></div>
+      <p id="message"></p>
+    </div>
+  </div>
 
-// Références Firebase
-const playersRef = db.ref('players');
-const guessesRef = db.ref('guesses');
+  <!-- Firebase + JS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// =================== INITIALISATION ===================
-function initPlayer() {
-  playerName = document.getElementById('playerName').value.trim();
-  if (!playerName) playerName = "Joueur" + Math.floor(Math.random()*100);
-  playersRef.child(playerId).set({ score, alive, lastGuess: null, name: playerName });
-  updateDisplay();
-}
-document.getElementById('playerName').addEventListener('change', initPlayer);
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
+      authDomain: "average-game-448ac.firebaseapp.com",
+      projectId: "average-game-448ac",
+      storageBucket: "average-game-448ac.appspot.com",
+      messagingSenderId: "184831556477",
+      appId: "1:184831556477:web:1ee0cffc102a50677caa14",
+      measurementId: "G-N4LQ1KH5W0"
+    };
 
-// =================== SOUMISSION ===================
-function submitGuess() {
-  if (!alive) {
-    alert('Vous êtes éliminé !');
-    return;
-  }
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  if (!playerName) initPlayer();
+    // Soumettre un joueur
+    window.submitPlayer = function() {
+      const name = document.getElementById('playerName').value.trim();
+      const guess = parseInt(document.getElementById('playerGuess').value);
+      if (!name || isNaN(guess) || guess < 0 || guess > 100) return alert("Nom ou nombre invalide");
 
-  const input = document.getElementById('playerInput');
-  const guess = parseInt(input.value);
-
-  if (isNaN(guess) || guess < 0 || guess > 100) {
-    alert('Entrez un nombre entre 0 et 100.');
-    return;
-  }
-
-  const newGuessRef = guessesRef.push();
-  newGuessRef.set({ playerId, guess, name: playerName });
-
-  playersRef.child(playerId).update({ lastGuess: guess });
-
-  input.value = '';
-  alert('Nombre soumis ! Attendez la fin de la manche.');
-}
-
-// =================== AFFICHAGE ===================
-function updateDisplay() {
-  document.getElementById('score').textContent = score;
-  document.getElementById('status').textContent = alive ? "" : "ÉLIMINÉ";
-}
-
-// =================== TERMINER LA MANCHE ===================
-function endRound() {
-  guessesRef.once('value', snapshot => {
-    const allGuesses = snapshot.val() ? Object.values(snapshot.val()) : [];
-    if (allGuesses.length === 0) {
-      alert('Personne n’a joué cette manche !');
-      return;
+      const newPlayerRef = push(ref(db, 'players'));
+      set(newPlayerRef, { name, guess, score: 10 });
+      document.getElementById('playerName').value = '';
+      document.getElementById('playerGuess').value = '';
     }
 
-    const counts = {};
-    allGuesses.forEach(g => counts[g.guess] = (counts[g.guess] || 0) + 1);
-
-    const sum = allGuesses.reduce((a, g) => a + g.guess, 0);
-    const target = (sum / allGuesses.length) * 0.8;
-
-    // Déterminer le gagnant
-    let closest = null;
-    let minDistance = Infinity;
-    allGuesses.forEach(g => {
-      if (counts[g.guess] > 1) return;
-      const distance = Math.abs(g.guess - target);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closest = g.playerId;
-      }
-    });
-
-    // =================== AFFICHAGE VISUEL ===================
-    const container = document.getElementById('numbersContainer');
-    container.innerHTML = ""; // vider avant
-    allGuesses.forEach(g => {
-      const div = document.createElement('div');
-      div.classList.add('player-number', 'animation');
-      if (g.playerId === closest) div.classList.add('winner');
-      div.innerHTML = `<div class="player-name">${g.name}</div>${g.guess}`;
-      container.appendChild(div);
-    });
-
-    // Animation simple
-    setTimeout(() => {
-      const message = document.getElementById('message');
-      message.textContent = `Somme des nombres = ${sum}, Moyenne × 0.8 = ${target.toFixed(2)}, Gagnant: ${
-        allGuesses.find(g => g.playerId === closest)?.name || "Aucun"
-      }`;
-    }, 1000);
-
-    // =================== MISE À JOUR DES SCORES ===================
-    allGuesses.forEach(g => {
-      playersRef.child(g.playerId).once('value', snap => {
-        let p = snap.val();
-        if (!p) return;
-
-        if (counts[g.guess] > 1) p.score -= 2;
-        else if (g.playerId === closest) p.score += 1;
-        else p.score -= 1;
-
-        if (p.score <= -10) p.alive = false;
-
-        playersRef.child(g.playerId).set(p);
-
-        if (g.playerId === playerId) {
-          score = p.score;
-          alive = p.alive;
-          updateDisplay();
-        }
+    // Écouter les joueurs en temps réel
+    const playersContainer = document.getElementById('numbersContainer');
+    let currentPlayers = {};
+    onValue(ref(db, 'players'), (snapshot) => {
+      const data = snapshot.val() || {};
+      currentPlayers = data;
+      playersContainer.innerHTML = '';
+      Object.values(data).forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'player-number';
+        div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess}`;
+        playersContainer.appendChild(div);
       });
     });
 
-    // Nettoyer les guesses pour la manche suivante
-    setTimeout(() => guessesRef.remove(), 2000);
-  });
-}
+    // Terminer la manche
+    window.endRound = function() {
+      const playerList = Object.entries(currentPlayers).map(([id,p]) => ({...p, id}));
+      if (playerList.length === 0) { alert('Pas de joueur !'); return; }
 
-// =================== INITIAL DISPLAY ===================
-updateDisplay();
+      const sum = playerList.reduce((a,p)=>a+p.guess,0);
+      const target = sum / playerList.length * 0.8;
+
+      // Compter doublons
+      const counts = {};
+      playerList.forEach(p => counts[p.guess] = (counts[p.guess]||0)+1);
+
+      // Déterminer gagnant
+      let winner = null;
+      let minDiff = Infinity;
+      playerList.forEach(p => {
+        if (counts[p.guess] > 1) return; // doublon, impossible de gagner
+        const diff = Math.abs(p.guess - target);
+        if (diff < minDiff) { minDiff = diff; winner = p; }
+      });
+
+      // Mettre à jour scores
+      playerList.forEach(p => {
+        let newScore = p.score;
+        if (counts[p.guess] > 1) newScore -= 2;
+        else if (p === winner) newScore += 1;
+        else newScore -= 1;
+
+        // Vérifier élimination
+        if (newScore <= -10) {
+          remove(ref(db, 'players/' + p.id));
+        } else {
+          update(ref(db, 'players/' + p.id), { score: newScore });
+        }
+      });
+
+      // Affichage final
+      playersContainer.innerHTML = '';
+      playerList.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'player-number';
+        if (p === winner) div.classList.add('winner');
+        div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+        playersContainer.appendChild(div);
+      });
+
+      document.getElementById('message').textContent = `Somme: ${sum}, Moyenne × 0.8: ${target.toFixed(2)}, Gagnant: ${winner ? winner.name : 'Aucun'}`;
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</body>
+</html>
