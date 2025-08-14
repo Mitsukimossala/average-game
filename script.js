@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
 import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// Config Firebase
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
   authDomain: "average-game-448ac.firebaseapp.com",
@@ -14,21 +14,22 @@ const firebaseConfig = {
   measurementId: "G-N4LQ1KH5W0"
 };
 
-// Initialisation
+// Initialisation Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-// DOM
 const playersContainer = document.getElementById('numbersContainer');
 let currentPlayers = {};
 
-// Soumission joueur
+// Ajouter un joueur
 window.submitPlayer = function () {
   const name = document.getElementById('playerName').value.trim();
   const guess = parseInt(document.getElementById('playerGuess').value);
+
   if (!name || isNaN(guess) || guess < 0 || guess > 100) {
-    return alert("Nom ou nombre invalide");
+    alert("Nom ou nombre invalide");
+    return;
   }
 
   const newPlayerRef = push(ref(db, 'players'));
@@ -38,12 +39,14 @@ window.submitPlayer = function () {
   document.getElementById('playerGuess').value = '';
 };
 
-// Écoute en temps réel
+// Écouter les joueurs en temps réel
 onValue(ref(db, 'players'), (snapshot) => {
   const data = snapshot.val() || {};
   currentPlayers = data;
   playersContainer.innerHTML = '';
+
   Object.values(data).forEach(p => {
+    if (!p.name || typeof p.guess !== "number") return;
     const div = document.createElement('div');
     div.className = 'player-number';
     div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess}`;
@@ -51,12 +54,18 @@ onValue(ref(db, 'players'), (snapshot) => {
   });
 });
 
-// Fin de manche
+// Terminer la manche
 window.endRound = function () {
-  const playerList = Object.entries(currentPlayers).map(([id, p]) => ({ ...p, id }));
-  if (playerList.length === 0) return alert('Pas de joueur !');
+  const playerList = Object.entries(currentPlayers)
+    .map(([id, p]) => ({ ...p, id }))
+    .filter(p => p.name && typeof p.guess === 'number' && typeof p.score === 'number');
 
-  const sum = playerList.reduce((a, p) => a + p.guess, 0);
+  if (playerList.length === 0) {
+    alert('Pas de joueurs valides !');
+    return;
+  }
+
+  const sum = playerList.reduce((acc, p) => acc + p.guess, 0);
   const target = (sum / playerList.length) * 0.8;
 
   const counts = {};
@@ -75,9 +84,13 @@ window.endRound = function () {
 
   playerList.forEach(p => {
     let newScore = p.score;
-    if (counts[p.guess] > 1) newScore -= 2;
-    else if (p === winner) newScore += 1;
-    else newScore -= 1;
+    if (counts[p.guess] > 1) {
+      newScore -= 2;
+    } else if (p === winner) {
+      newScore = Math.min(newScore + 1, 10);
+    } else {
+      newScore -= 1;
+    }
 
     if (newScore <= -10) {
       remove(ref(db, 'players/' + p.id));
@@ -86,7 +99,7 @@ window.endRound = function () {
     }
   });
 
-  // Affichage
+  // Affichage des résultats
   playersContainer.innerHTML = '';
   playerList.forEach(p => {
     const div = document.createElement('div');
