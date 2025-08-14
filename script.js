@@ -1,91 +1,103 @@
 // Génère un ID unique pour chaque joueur
 let playerId = 'player_' + Math.floor(Math.random() * 100000);
-let lives = 10;
 let score = 0;
+let alive = true;
 
+// Référence Firebase
 const playersRef = db.ref('players');
 const guessesRef = db.ref('guesses');
 
 // Ajouter ce joueur dans la DB
-playersRef.child(playerId).set({ score, lives, lastGuess: null });
+playersRef.child(playerId).set({ score, alive, lastGuess: null });
 
-// Affichage des vies
-function updateLivesDisplay() {
-  const livesContainer = document.getElementById('lives');
-  livesContainer.innerHTML = '';
-  for(let i=0;i<lives;i++){
-    const heart = document.createElement('span');
-    heart.textContent = '❤️';
-    heart.classList.add('life-heart');
-    livesContainer.appendChild(heart);
-  }
+// Mise à jour de l'affichage
+function updateDisplay() {
+  document.getElementById('score').textContent = score;
 }
-
-// Écoute les changements de guesses pour la moyenne
-guessesRef.on('value', snapshot => {
-  const allGuesses = snapshot.val() ? Object.values(snapshot.val()) : [];
-  if(allGuesses.length === 0) return;
-  const average = allGuesses.reduce((a,b)=>a.guess+a,0)/allGuesses.length;
-  document.getElementById('average').textContent = average.toFixed(2);
-});
-
-// Écoute le leaderboard et derniers choix
-playersRef.on('value', snapshot => {
-  const players = snapshot.val() || {};
-  const sorted = Object.entries(players).sort((a,b)=>b[1].score - a[1].score);
-  const leaderboard = document.getElementById('leaderboard');
-  leaderboard.innerHTML = '';
-  sorted.forEach(([id, data]) => {
-    const li = document.createElement('li');
-    const guessText = data.lastGuess !== null ? ` | Dernier choix: ${data.lastGuess}` : '';
-    li.textContent = `${id}: Score ${data.score}, Vies ${data.lives}${guessText}`;
-    leaderboard.appendChild(li);
-  });
-  updateLivesDisplay();
-});
 
 // Soumettre un nombre
 function submitGuess() {
-  const input = document.getElementById('playerInput');
-  const playerGuess = parseInt(input.value);
-  if(isNaN(playerGuess) || playerGuess < 1 || playerGuess > 100) {
-    alert('Veuillez entrer un nombre entre 1 et 100.');
+  if (!alive) {
+    alert('Vous êtes éliminé !');
     return;
   }
 
-  // Ajoute le guess dans la DB
-  const newGuessRef = guessesRef.push();
-  newGuessRef.set({ playerId, guess: playerGuess });
+  const input = document.getElementById('playerInput');
+  const guess = parseInt(input.value);
 
-  // Calculer la moyenne actuelle
+  if (isNaN(guess) || guess < 0 || guess > 100) {
+    alert('Entrez un nombre entre 0 et 100.');
+    return;
+  }
+
+  // Ajouter le guess dans Firebase
+  const newGuessRef = guessesRef.push();
+  newGuessRef.set({ playerId, guess });
+
+  // Enregistrer le dernier choix
+  playersRef.child(playerId).update({ lastGuess: guess });
+
+  input.value = '';
+
+  // Vérifier si tous les joueurs ont joué (optionnel : ou timeout)
   guessesRef.once('value', snapshot => {
     const allGuesses = snapshot.val() ? Object.values(snapshot.val()) : [];
-    const average = allGuesses.reduce((a,b)=>a.guess+a,0)/allGuesses.length;
+    if (allGuesses.length === 0) return;
 
-    // Trouver le plus proche
-    const closest = allGuesses.reduce((prev, curr) => 
-      Math.abs(curr.guess - average) < Math.abs(prev.guess - average) ? curr : prev
-    );
+    // Compter les doublons
+    const counts = {};
+    allGuesses.forEach(g => counts[g.guess] = (counts[g.guess] || 0) + 1);
 
-    if(closest.playerId === playerId){
-      score++;
-      document.getElementById('result').textContent = `🎉 Bravo! Vous êtes proche de la moyenne: ${average.toFixed(2)}.`;
-    } else {
-      lives--;
-      document.getElementById('result').textContent = `💥 La moyenne est: ${average.toFixed(2)}. Vous perdez une vie.`;
-    }
+    // Calculer moyenne × 0.8
+    const sum = allGuesses.reduce((a, g) => a + g.guess, 0);
+    const target = (sum / allGuesses.length) * 0.8;
 
-    playersRef.child(playerId).set({ score, lives, lastGuess: playerGuess });
+    // Déterminer le gagnant
+    let closest = null;
+    let minDistance = Infinity;
 
-    if(lives <= 0){
-      alert(`Game Over! Votre score final: ${score}`);
-      score = 0;
-      lives = 10;
-      playersRef.child(playerId).set({ score, lives, lastGuess: null });
-    }
+    allGuesses.forEach(g => {
+      // Exclure doublons
+      if (counts[g.guess] > 1) return;
+      const distance = Math.abs(g.guess - target);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = g.playerId;
+      }
+    });
 
-    input.value = '';
+    // Mettre à jour scores
+    allGuesses.forEach(g => {
+      playersRef.child(g.playerId).once('value', snap => {
+        let p = snap.val();
+        if (!p) return;
+
+        // Si doublon
+        if (counts[g.guess] > 1) {
+          p.score -= 2;
+        } else if (g.playerId === closest) {
+          p.score += 1; // gagnant
+        } else {
+          p.score -= 1; // perdant
+        }
+
+        // Vérifier élimination
+        if (p.score <= -10) p.alive = false;
+
+        playersRef.child(g.playerId).set(p);
+
+        if (g.playerId === playerId) {
+          score = p.score;
+          alive = p.alive;
+          updateDisplay();
+        }
+      });
+    });
+
+    // Nettoyer les guesses pour la manche suivante
+    guessesRef.remove();
   });
 }
 
-updateLivesDisplay();
+// Initial display
+updateDisplay();
