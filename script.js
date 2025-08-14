@@ -18,7 +18,6 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-// --- VARIABLES ---
 let playerName = '';
 let playerScore = 0;
 let isAlive = true;
@@ -61,12 +60,6 @@ function listenPlayers() {
     const data = snapshot.val() || {};
     const container = document.getElementById('numbersContainer');
     container.innerHTML = '';
-
-    // On n'affiche pas les ronds avant la fin de manche
-    for (const key in data) {
-      const p = data[key];
-      if (p.guess === null || p.name === null) continue; // pas afficher si undefined/null
-    }
   });
 }
 
