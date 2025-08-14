@@ -7,21 +7,25 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="namePage" class="page active">
+  <div id="game">
     <h1>Jeu de la Moyenne</h1>
-    <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
-    <button onclick="submitName()">Valider</button>
-  </div>
-
-  <div id="gamePage" class="page">
-    <h1>Jeu de la Moyenne</h1>
-    <h2 id="playerNameDisplay"></h2>
+    <h2 id="playerDisplay"></h2>
+    
     <div id="playerInputSection">
+      <input type="text" id="playerName" placeholder="Entrez votre nom">
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
       <button onclick="submitGuess()">Soumettre</button>
     </div>
+
+    <div id="gameStatus">
+      <p id="score">Score: 0</p>
+      <p id="status">Survie: Oui</p>
+    </div>
+
     <div id="roundResults">
       <button onclick="endRound()">Terminer la Manche</button>
+      <button onclick="newRound()">Nouvelle Manche</button>
+      <button onclick="newGame()">Nouvelle Partie</button>
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
