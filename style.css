@@ -1,42 +1,21 @@
 body {
   font-family: Arial, sans-serif;
-  background: #111;
-  color: white;
   text-align: center;
-  padding: 20px;
 }
 
-h1 {
-  font-size: 2rem;
+.page {
+  margin-top: 50px;
 }
 
-input, button {
-  padding: 10px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
+.hidden {
+  display: none;
 }
 
-input {
-  width: 200px;
+#joueurs {
+  margin-top: 20px;
 }
 
 button {
-  background: #444;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #666;
-}
-
-#numbers {
-  margin: 20px 0;
-  font-size: 1.2rem;
-}
-
-#result {
-  margin: 15px 0;
-  font-weight: bold;
+  margin: 5px;
+  padding: 10px 20px;
 }
