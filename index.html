@@ -5,37 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jeu de la Moyenne</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
 </head>
 <body>
-  <!-- Page d'accueil -->
-  <div id="welcome">
-    <h1>Jeu de la Moyenne</h1>
-    <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
-    <button id="startGame">Commencer</button>
+  <div id="page-nom" class="page">
+    <h1>Entre ton nom</h1>
+    <input type="text" id="nomInput" placeholder="Ton pseudo">
+    <button id="validerNom">Valider</button>
   </div>
 
-  <!-- Zone de jeu -->
-  <div id="game" style="display:none;">
+  <div id="page-jeu" class="page hidden">
     <h1>Jeu de la Moyenne</h1>
-    <h2 id="playerNameDisplay"></h2>
+    <h2 id="nomJoueur"></h2>
+    <input type="number" id="nombreInput" placeholder="0-100" min="0" max="100">
+    <button id="validerNombre">Valider Nombre</button>
 
-    <div id="scores">
-      <p>Score : <span id="playerScore">0</span></p>
-    </div>
+    <div id="joueurs"></div>
+    <div id="resultat"></div>
 
-    <div id="numbers"></div>
-
-    <input type="number" id="guessInput" placeholder="Votre nombre">
-    <button id="submitGuess">Valider</button>
-
-    <div id="result"></div>
-
-    <button id="newRound">Nouvelle manche</button>
-    <button id="newGame">Nouvelle partie</button>
+    <button id="terminerManche">Terminer la Manche</button>
+    <button id="nouvelleManche">Nouvelle Manche</button>
+    <button id="nouvellePartie">Nouvelle Partie</button>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
