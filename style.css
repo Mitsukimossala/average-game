@@ -1,41 +1,146 @@
+/* Reset & base */
+* {
+  box-sizing: border-box;
+}
 body {
-  font-family: 'Courier New', monospace;
+  font-family: 'Courier New', Courier, monospace;
   background: #0c0c0c;
   color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
+  padding: 10px;
 }
 
 #game {
-  text-align: center;
-  background: rgba(20,20,20,0.9);
-  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.95);
   padding: 20px;
-  width: 400px;
-  box-shadow: 0 0 15px rgba(255,0,0,0.8);
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
 }
 
-input[type="text"], input[type="number"], button {
+input[type="text"],
+input[type="number"] {
+  width: calc(50% - 20px);
   padding: 10px;
-  margin: 5px;
-  border-radius: 5px;
+  margin: 10px 5px;
   border: 2px solid #ff0000;
+  border-radius: 5px;
   background: #222;
   color: #fff;
-  font-size: 16px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
-button:hover { background: #cc0000; cursor: pointer; }
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #00ff00;
+  outline: none;
+}
 
-#numbersContainer { margin-top: 20px; }
+button {
+  padding: 10px 20px;
+  background: #ff0000;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
 
-.player-number { 
-  margin: 5px; 
-  padding: 5px; 
-  border: 2px solid #ff0000; 
-  border-radius: 10px; 
-  background: #333; 
+button:hover:not(:disabled) {
+  background: #cc0000;
+}
+
+button:disabled {
+  background: #660000;
+  cursor: not-allowed;
+}
+
+#gameStatus {
+  margin-top: 15px;
+  font-size: 1.2rem;
+  display: flex;
+  justify-content: space-around;
+}
+
+#roundResults {
+  margin-top: 20px;
+}
+
+#numbersContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.player-number {
+  background: #333;
+  border: 2px solid #ff0000;
+  border-radius: 50%;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #fff;
+  opacity: 0;
+  animation: fadeIn 1s forwards;
+  word-break: break-word;
+  padding: 10px;
+  user-select: none;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.player-number.winner {
+  background: #00ff00;
+  box-shadow: 0 0 15px #00ff00;
+}
+
+.player-number.eliminated {
+  opacity: 0.4;
+  text-decoration: line-through;
+  border-color: #444;
+}
+
+.player-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#message {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  color: #ff0000;
+  min-height: 1.5em;
+}
+
+#errorMessage {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff0000cc;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: none;
+  z-index: 9999;
+  max-width: 90vw;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
 }
