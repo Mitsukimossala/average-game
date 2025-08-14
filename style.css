@@ -38,9 +38,7 @@ button {
   transition: background 0.3s;
 }
 
-button:hover {
-  background: #cc0000;
-}
+button:hover { background: #cc0000; }
 
 #numbersContainer {
   display: flex;
@@ -65,22 +63,9 @@ button:hover {
   animation: fadeIn 1s forwards;
 }
 
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
+@keyframes fadeIn { to { opacity: 1; } }
 
-.winner {
-  background: #00ff00;
-  box-shadow: 0 0 15px #00ff00;
-}
+.winner { background: #00ff00; box-shadow: 0 0 15px #00ff00; }
+.loser { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
 
-.loser {
-  background: #ff0000;
-  box-shadow: 0 0 15px #ff0000;
-}
-
-#message {
-  margin-top: 20px;
-  font-size: 18px;
-  color: #ff0000;
-}
+#message { margin-top: 20px; font-size: 18px; color: #ff0000; }
