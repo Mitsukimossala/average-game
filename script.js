@@ -121,18 +121,23 @@ window.endRound = function() {
   }, { onlyOnce:true });
 }
 
-window.newGame=function(){
+window.newGame = function(){
+  // Supprimer tous les joueurs de Firebase
   onValue(ref(db, 'players'), (snapshot)=>{
-    const data = snapshot.val()||{};
-    Object.values(data).forEach(p=> remove(ref(db,'players/'+p.id)));
+    const data = snapshot.val() || {};
+    Object.values(data).forEach(p => remove(ref(db, 'players/' + p.id)));
   }, { onlyOnce:true });
 
-  numbersContainer.innerHTML='';
-  message.textContent='';
-  playerScore=0;
-  isAlive=true;
+  // Réinitialiser les ronds et messages
+  numbersContainer.innerHTML = '';
+  message.textContent = '';
+
+  // Réinitialiser le score local et la survie
+  playerScore = 0;
+  isAlive = true;
   updateGameStatus();
 }
+
 
 function updateGameStatus(){
   scoreDisplay.textContent=`Score: ${playerScore}`;
