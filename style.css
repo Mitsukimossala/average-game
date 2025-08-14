@@ -10,12 +10,7 @@ body {
   overflow: hidden;
 }
 
-.page { display: none; text-align:center; }
-.page.active { display: block; }
-
-#playerDisplay { font-size: 28px; margin: 10px 0; color: #fff; }
-
-#game {
+#pageName, #pageGame {
   text-align: center;
   background: rgba(20, 20, 20, 0.9);
   border-radius: 10px;
@@ -23,6 +18,10 @@ body {
   box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
   width: 400px;
 }
+
+#pageName.active { display: block; }
+#pageGame { display: none; }
+#pageGame.active { display: block; }
 
 input[type="text"], input[type="number"] {
   padding: 10px;
@@ -41,6 +40,7 @@ button {
   color: #fff;
   cursor: pointer;
   transition: background 0.3s;
+  margin: 5px;
 }
 
 button:hover {
@@ -74,5 +74,13 @@ button:hover {
   to { opacity: 1; }
 }
 
-.winner { background: #00ff00; box-shadow: 0 0 15px #00ff00; }
-#message { margin-top: 20px; font-size: 18px; color: #ff0000; }
+.winner {
+  background: green;
+  box-shadow: 0 0 15px green;
+}
+
+#message {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #ff0000;
+}
