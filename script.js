@@ -36,14 +36,14 @@ const newGameBtn = document.getElementById('newGameBtn');
 let playerName = '';
 let playerScore = 10;
 
-// PAGE NOM → JOUER
+// SUBMIT NAME → GAME
 window.submitName = function() {
   const name = playerNameInput.value.trim();
   if(!name){ alert('Entrez un nom valide'); return; }
   playerName=name;
   playerDisplay.textContent = playerName;
 
-  // Afficher boutons seulement pour Im
+  // Show buttons only for Im
   if(playerName==='Im'){
     endRoundBtn.style.display='inline-block';
     newRoundBtn.style.display='inline-block';
@@ -53,7 +53,7 @@ window.submitName = function() {
   pageGame.classList.add('active');
 }
 
-// SOUMETTRE NOMBRE
+// SUBMIT GUESS
 window.submitGuess = function(){
   const guess = parseInt(guessInput.value);
   if(isNaN(guess)||guess<0||guess>100){ alert('Nombre invalide'); return; }
@@ -66,7 +66,7 @@ window.submitGuess = function(){
   guessInput.value='';
 }
 
-// Écouter joueurs pour mise à jour
+// LISTEN PLAYERS
 onValue(ref(db,'players'), snapshot=>{
   const data = snapshot.val()||{};
   numbersContainer.innerHTML='';
@@ -80,7 +80,7 @@ onValue(ref(db,'players'), snapshot=>{
   });
 });
 
-// TERMINER MANCHE
+// END ROUND
 window.endRound=function(){
   onValue(ref(db,'players'), snapshot=>{
     const data=snapshot.val()||{};
@@ -121,7 +121,7 @@ window.endRound=function(){
   },{onlyOnce:true});
 }
 
-// NOUVELLE MANCHE
+// NEW ROUND
 window.newRound=function(){
   numbersContainer.innerHTML='';
   messageEl.textContent='';
@@ -134,7 +134,7 @@ window.newRound=function(){
   },{onlyOnce:true});
 }
 
-// NOUVELLE PARTIE
+// NEW GAME
 window.newGame=function(){
   numbersContainer.innerHTML='';
   messageEl.textContent='';
