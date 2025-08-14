@@ -10,14 +10,13 @@ body {
   overflow: hidden;
 }
 
-.page {
-  display: none;
+#game {
   text-align: center;
+  background: rgba(20, 20, 20, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
   width: 400px;
-}
-
-.page.active {
-  display: block;
 }
 
 input[type="text"], input[type="number"] {
@@ -31,6 +30,7 @@ input[type="text"], input[type="number"] {
 
 button {
   padding: 10px 20px;
+  margin: 5px;
   background: #ff0000;
   border: none;
   border-radius: 5px;
@@ -46,8 +46,8 @@ button:hover {
 #numbersContainer {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .player-number {
@@ -59,11 +59,12 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 16px;
+  font-size: 20px;
   background: #333;
   color: #fff;
   opacity: 0;
-  animation: fadeIn 1s forwards;
+  animation: fadeIn 0.8s forwards;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -73,10 +74,16 @@ button:hover {
 .winner {
   background: #00ff00;
   box-shadow: 0 0 15px #00ff00;
+  animation: blink 0.8s infinite alternate;
+}
+
+@keyframes blink {
+  from { box-shadow: 0 0 15px #00ff00; }
+  to { box-shadow: 0 0 25px #00ff00; }
 }
 
 #message {
   margin-top: 20px;
-  font-size: 16px;
+  font-size: 18px;
   color: #ff0000;
 }
