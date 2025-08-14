@@ -7,38 +7,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<!-- PAGE NOM -->
-<div id="pageName" class="page active">
-  <h1>Bienvenue dans le Jeu de la Moyenne</h1>
-  <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
-  <button onclick="submitName()">Commencer</button>
-</div>
-
-<!-- PAGE JEU -->
-<div id="pageGame" class="page">
-  <h1>Jeu de la Moyenne</h1>
-  <div id="playerDisplay" class="player-display"></div>
-
-  <div id="playerInputSection">
-    <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
-    <button onclick="submitGuess()">Soumettre</button>
+  <!-- PAGE NOM -->
+  <div id="pageName" class="active">
+    <h1>Jeu de la Moyenne</h1>
+    <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
+    <button onclick="submitName()">Valider</button>
   </div>
 
-  <div id="gameStatus">
-    <p id="score">Score: 10</p>
-    <p id="status">Survie: Oui</p>
+  <!-- PAGE JEU -->
+  <div id="pageGame">
+    <h1>Jeu de la Moyenne</h1>
+    <h2 id="playerDisplay"></h2>
+    <div id="playerInputSection">
+      <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
+      <button onclick="submitGuess()">Soumettre</button>
+    </div>
+
+    <div id="gameStatus">
+      <p id="score">Score: 0</p>
+      <p id="status">Survie: Oui</p>
+    </div>
+
+    <div id="roundResults">
+      <button id="endRoundBtn" onclick="endRound()">Terminer la Manche</button>
+      <button id="newRoundBtn" onclick="newRound()">Nouvelle Manche</button>
+      <button id="newGameBtn" onclick="newGame()">Nouvelle Partie</button>
+      <div id="numbersContainer"></div>
+      <p id="message"></p>
+    </div>
   </div>
 
-  <div id="roundResults">
-    <button id="endRoundBtn" onclick="endRound()" style="display:none">Terminer la Manche</button>
-    <button id="newRoundBtn" onclick="newRound()" style="display:none">Nouvelle Manche</button>
-    <button id="newGameBtn" onclick="newGame()">Nouvelle Partie</button>
-    <div id="numbersContainer"></div>
-    <p id="message"></p>
-  </div>
-</div>
-
-<script type="module" src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
