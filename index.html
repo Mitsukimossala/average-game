@@ -14,12 +14,15 @@
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100" />
       <button onclick="submitPlayer()">Soumettre</button>
     </div>
+
     <div id="gameStatus">
-      <p id="score">Score: 10</p>
+      <p id="score">Score: 0</p>
       <p id="status">Survie: Oui</p>
     </div>
+
     <div id="roundResults">
       <button onclick="endRound()">Terminer la Manche</button>
+      <button onclick="newGame()">Nouvelle Partie</button>
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
