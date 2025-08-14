@@ -9,7 +9,7 @@
 <body>
   <div id="game">
     <h1>Jeu de la Moyenne</h1>
-    <h2 id="displayName"></h2>
+    <h2 id="playerDisplay"></h2>
 
     <div id="playerInputSection">
       <input type="text" id="playerName" placeholder="Entrez votre nom">
@@ -18,14 +18,15 @@
     </div>
 
     <div id="gameStatus">
-      <p id="score">Score: 0</p>
+      <p id="score">Score: 10</p>
       <p id="status">Survie: Oui</p>
     </div>
 
     <div id="roundResults">
-      <button id="endRoundBtn" onclick="endRound()">Terminer la Manche</button>
-      <button id="newRoundBtn" onclick="newRound()">Nouvelle Manche</button>
-      <button id="newGameBtn" onclick="newGame()">Nouvelle Partie</button>
+      <button id="endRoundBtn" onclick="endRound()" style="display:none;">Terminer la Manche</button>
+      <button id="newRoundBtn" onclick="newRound()" style="display:none;">Nouvelle Manche</button>
+      <button onclick="newGame()">Nouvelle Partie</button>
+
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
