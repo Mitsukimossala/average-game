@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
 import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// Config Firebase
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
   authDomain: "average-game-448ac.firebaseapp.com",
@@ -14,12 +14,12 @@ const firebaseConfig = {
   measurementId: "G-N4LQ1KH5W0"
 };
 
-// Init Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-// DOM Elements
+// DOM elements
 const nameInput = document.getElementById('playerName');
 const changeNameBtn = document.getElementById('changeNameBtn');
 const guessInput = document.getElementById('playerGuess');
@@ -34,10 +34,10 @@ let playerRef = null;
 // Si le joueur a déjà un nom
 if(playerName){
   nameInput.value = playerName;
-  nameInput.readOnly = true;
+  nameInput.readOnly = true; // Bloquer le champ après avoir soumis
 }
 
-// Changer de nom
+// Bouton changer de nom
 changeNameBtn.addEventListener('click', () => {
   nameInput.readOnly = false;
   nameInput.value = '';
@@ -59,8 +59,11 @@ submitBtn.addEventListener('click', () => {
     if(!name) return alert('Veuillez entrer un nom');
     playerName = name;
     localStorage.setItem('playerName', playerName);
-    nameInput.readOnly = true;
   }
+
+  // Bloquer le champ après avoir soumis
+  nameInput.value = playerName;
+  nameInput.readOnly = true;
 
   if(isNaN(guess) || guess < 0 || guess > 100){
     return alert("Veuillez entrer un nombre entre 0 et 100");
@@ -77,7 +80,7 @@ submitBtn.addEventListener('click', () => {
   guessInput.value = '';
 });
 
-// Écouter tous les joueurs
+// Écouter tous les joueurs en temps réel
 let currentPlayers = {};
 onValue(ref(db, 'players'), snapshot => {
   const data = snapshot.val() || {};
