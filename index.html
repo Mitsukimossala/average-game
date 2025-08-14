@@ -7,21 +7,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Page prénom -->
-  <div id="namePage">
-    <h1>Entrez votre prénom</h1>
-    <input type="text" id="playerNameInput" placeholder="Votre nom">
-    <button onclick="setPlayerName()">Valider</button>
-  </div>
-
-  <!-- Page jeu -->
-  <div id="gamePage" style="display:none">
+  <div id="game">
     <h1>Jeu de la Moyenne</h1>
-    <h2 id="playerNameDisplay"></h2>
-
+    <h2 id="playerDisplay"></h2>
+    
     <div id="playerInputSection">
+      <input type="text" id="playerName" placeholder="Entrez votre nom">
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
       <button onclick="submitGuess()">Soumettre</button>
+    </div>
+
+    <div id="gameStatus">
+      <p id="score">Score: 0</p>
+      <p id="status">Survie: Oui</p>
     </div>
 
     <div id="roundResults">
