@@ -12,22 +12,18 @@
 
     <div id="playerInputSection">
       <input type="text" id="playerName" placeholder="Entrez votre nom">
+      <button onclick="setPlayerName()">Confirmer Nom</button>
+    </div>
+
+    <div id="guessSection" style="display:none;">
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
-      <button id="submitBtn">Soumettre</button>
+      <button onclick="submitGuess()">Soumettre Nombre</button>
     </div>
 
-    <div id="gameStatus">
-      <p id="score">Score: 10</p>
-      <p id="status">Survie: Oui</p>
-    </div>
-
-    <div id="roundResults">
-      <button id="endRoundBtn">Terminer la Manche</button>
-      <div id="numbersContainer"></div>
-      <p id="message"></p>
-    </div>
+    <div id="numbersContainer"></div>
+    <p id="message"></p>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
