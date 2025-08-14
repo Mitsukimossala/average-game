@@ -10,7 +10,7 @@ body {
   overflow: hidden;
 }
 
-#namePage, #gamePage {
+#game {
   text-align: center;
   background: rgba(20, 20, 20, 0.9);
   border-radius: 10px;
@@ -30,6 +30,7 @@ input[type="text"], input[type="number"] {
 
 button {
   padding: 10px 20px;
+  margin: 5px;
   background: #ff0000;
   border: none;
   border-radius: 5px;
@@ -45,8 +46,8 @@ button:hover {
 #numbersContainer {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .player-number {
@@ -58,16 +59,18 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 14px;
+  font-size: 20px;
   background: #333;
   color: #fff;
   opacity: 0;
   animation: fadeIn 1s forwards;
-  text-align: center;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {
-  to { opacity: 1; }
+  to {
+    opacity: 1;
+  }
 }
 
 .winner {
