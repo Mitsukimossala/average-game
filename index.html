@@ -1,41 +1,33 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jeu de la Moyenne</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de la Moyenne</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Page d'accueil -->
-  <div id="welcome">
-    <h1>Jeu de la Moyenne</h1>
-    <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
-    <button id="startGame">Commencer</button>
-  </div>
 
-  <!-- Zone de jeu -->
-  <div id="game" style="display:none;">
+<div id="name-screen">
     <h1>Jeu de la Moyenne</h1>
-    <h2 id="playerNameDisplay"></h2>
+    <input type="text" id="player-name" placeholder="Entrez votre nom">
+    <button id="start-game">Commencer</button>
+</div>
 
-    <div id="scores">
-      <p>Score : <span id="playerScore">0</span></p>
+<div id="game-screen" style="display:none;">
+    <h1>Jeu de la Moyenne</h1>
+    <h2 id="display-name"></h2>
+    <p id="score">Score : 0</p>
+    <p id="numbers"></p>
+    <input type="number" id="guess" placeholder="Entrez la moyenne">
+    <button id="submit">Valider</button>
+    <p id="result"></p>
+    <div class="buttons">
+        <button id="new-round">Nouvelle manche</button>
+        <button id="new-game">Nouvelle partie</button>
     </div>
+</div>
 
-    <div id="numbers"></div>
-
-    <input type="number" id="guessInput" placeholder="Votre nombre">
-    <button id="submitGuess">Valider</button>
-
-    <div id="result"></div>
-
-    <button id="newRound">Nouvelle manche</button>
-    <button id="newGame">Nouvelle partie</button>
-  </div>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
