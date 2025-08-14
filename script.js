@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -19,117 +19,141 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-let players = [];
+let playerName = '';
 let playerScore = 10;
 let isAlive = true;
 
-// Récupération des éléments
+// Elements
 const nameInput = document.getElementById('playerName');
 const guessInput = document.getElementById('playerGuess');
 const numbersContainer = document.getElementById('numbersContainer');
 const messageEl = document.getElementById('message');
 const scoreEl = document.getElementById('score');
 const statusEl = document.getElementById('status');
-const endRoundBtn = document.getElementById('endRoundBtn'); // bouton Terminer la Manche
-const newRoundBtn = document.getElementById('newRoundBtn'); // bouton Nouvelle Manche
+const endRoundBtn = document.getElementById('endRoundBtn');
+const newRoundBtn = document.getElementById('newRoundBtn');
+const playerDisplay = document.getElementById('playerDisplay');
 
-// Soumettre un nombre
+// Soumettre un joueur
 window.submitGuess = function() {
-  let name = nameInput.value.trim();
-  let guess = parseInt(guessInput.value);
+  const name = nameInput.value.trim();
+  const guess = parseInt(guessInput.value);
 
-  if (!name || isNaN(guess) || guess < 0 || guess > 100) {
-    alert('Nom ou nombre invalide.');
+  if(!name || isNaN(guess) || guess <0 || guess>100){
+    alert("Nom ou nombre invalide");
     return;
   }
 
-  // Ajouter ou mettre à jour le joueur
-  let existing = players.find(p => p.name === name);
-  if (!existing) {
-    players.push({ name, guess, score: playerScore });
+  playerName = name;
+  displayPlayerName(playerName);
+
+  // Ajouter ou mettre à jour dans Firebase
+  const playerRef = ref(db, 'players/' + playerName);
+  set(playerRef, {
+    name: playerName,
+    guess: guess,
+    score: playerScore
+  });
+
+  // Afficher boutons seulement pour Im
+  if(playerName === 'Im'){
+    endRoundBtn.style.display='inline-block';
+    newRoundBtn.style.display='inline-block';
   } else {
-    existing.guess = guess;
+    endRoundBtn.style.display='none';
+    newRoundBtn.style.display='none';
   }
 
-  // Afficher boutons seulement si nom = Im
-  if(name === 'Im') {
-    endRoundBtn.style.display = 'inline-block';
-    newRoundBtn.style.display = 'inline-block';
-  } else {
-    endRoundBtn.style.display = 'none';
-    newRoundBtn.style.display = 'none';
-  }
-
-  guessInput.value = '';
-  updateGameStatus();
+  guessInput.value='';
 }
 
+// Afficher le nom en haut
+function displayPlayerName(name){
+  playerDisplay.textContent = name;
+}
+
+// Écouter tous les joueurs pour affichage temps réel
+onValue(ref(db,'players'), snapshot=>{
+  const data = snapshot.val() || {};
+  numbersContainer.innerHTML='';
+  Object.values(data).forEach(p=>{
+    if(p.name && p.guess!==undefined){
+      const div = document.createElement('div');
+      div.className='player-number';
+      div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+      numbersContainer.appendChild(div);
+    }
+  });
+});
+
 // Terminer la manche
-window.endRound = function() {
-  if(players.length < 2) { alert('Au moins 2 joueurs nécessaires'); return; }
+window.endRound = function(){
+  onValue(ref(db,'players'), snapshot=>{
+    const data = snapshot.val() || {};
+    const playersArr = Object.values(data);
 
-  const sum = players.reduce((acc, p)=>acc+p.guess, 0);
-  const target = (sum/players.length) * 0.8;
+    if(playersArr.length<2){ alert('Au moins 2 joueurs nécessaires'); return; }
 
-  // Compter doublons
-  const counts = {};
-  players.forEach(p => counts[p.guess] = (counts[p.guess]||0)+1);
+    const sum = playersArr.reduce((a,p)=>a+p.guess,0);
+    const target = (sum/playersArr.length)*0.8;
 
-  // Déterminer gagnant
-  let winner = null;
-  let minDiff = Infinity;
-  players.forEach(p => {
-    if(counts[p.guess] > 1) return;
-    const diff = Math.abs(p.guess - target);
-    if(diff < minDiff) { minDiff = diff; winner = p; }
-  });
+    const counts = {};
+    playersArr.forEach(p=>counts[p.guess]=(counts[p.guess]||0)+1);
 
-  // Mettre à jour scores
-  players.forEach(p=>{
-    if(counts[p.guess]>1) p.score -= 2;
-    else if(p===winner) p.score += 0; // gagne aucun point
-    else p.score -= 1;
-    p.isAlive = p.score > -10;
-  });
+    let winner=null;
+    let minDiff=Infinity;
+    playersArr.forEach(p=>{
+      if(counts[p.guess]>1) return;
+      const diff=Math.abs(p.guess-target);
+      if(diff<minDiff){ minDiff=diff; winner=p; }
+    });
 
-  // Affichage final (ronds)
-  numbersContainer.innerHTML = '';
-  players.forEach(p=>{
-    if(!p.name || p.guess === undefined || p.guess === null) return;
-    const div = document.createElement('div');
-    div.className = 'player-number';
-    div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
-    if(p === winner) div.style.backgroundColor = 'green';
-    else div.style.backgroundColor = 'red';
-    numbersContainer.appendChild(div);
-  });
+    // Mise à jour des scores dans Firebase
+    playersArr.forEach(p=>{
+      let newScore = p.score;
+      if(counts[p.guess]>1) newScore -= 2;
+      else if(p===winner) newScore +=0;
+      else newScore -=1;
 
-  messageEl.textContent = `Somme: ${sum}, Moyenne × 0.8: ${target.toFixed(2)}, Gagnant: ${winner ? winner.name : 'Aucun'}`;
-  updateGameStatus();
+      newScore = Math.min(Math.max(newScore,-10),Infinity); // min -10
+
+      update(ref(db,'players/'+p.name), {score: newScore});
+    });
+
+    // Affichage résultats pour tous
+    numbersContainer.innerHTML='';
+    playersArr.forEach(p=>{
+      if(!p.name || p.guess===undefined) return;
+      const div = document.createElement('div');
+      div.className='player-number';
+      div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+      div.style.backgroundColor = (p===winner)? 'green':'red';
+      numbersContainer.appendChild(div);
+    });
+
+    messageEl.textContent=`Somme: ${sum}, Moyenne × 0.8: ${target.toFixed(2)}, Gagnant: ${winner?winner.name:'Aucun'}`;
+  }, {onlyOnce:true});
 }
 
 // Nouvelle Manche
-window.newRound = function() {
-  players.forEach(p => p.guess = 0);
-  numbersContainer.innerHTML = '';
-  messageEl.textContent = '';
-  guessInput.value = '';
+window.newRound = function(){
+  numbersContainer.innerHTML='';
+  messageEl.textContent='';
+  guessInput.value='';
+  Object.keys(playersArr).forEach(p=>{
+    update(ref(db,'players/'+p), {guess:0});
+  });
 }
 
 // Nouvelle Partie
-window.newGame = function() {
-  players.forEach(p => {
-    p.score = 10;
-    p.isAlive = true;
-    p.guess = 0;
-  });
-  numbersContainer.innerHTML = '';
-  messageEl.textContent = '';
-  updateGameStatus();
-}
-
-// Mise à jour du statut
-function updateGameStatus() {
-  scoreEl.textContent = `Score: ${playerScore}`;
-  statusEl.textContent = isAlive ? 'Survie: Oui' : 'Éliminé';
+window.newGame = function(){
+  numbersContainer.innerHTML='';
+  messageEl.textContent='';
+  guessInput.value='';
+  onValue(ref(db,'players'), snapshot=>{
+    const data = snapshot.val() || {};
+    Object.keys(data).forEach(p=>{
+      update(ref(db,'players/'+p), {score:10, guess:0});
+    });
+  }, {onlyOnce:true});
 }
