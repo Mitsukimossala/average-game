@@ -10,9 +10,7 @@ body {
   overflow: hidden;
 }
 
-.hidden { display: none; }
-
-#namePage, #gamePage {
+#game {
   text-align: center;
   background: rgba(20, 20, 20, 0.9);
   border-radius: 10px;
@@ -38,6 +36,7 @@ button {
   color: #fff;
   cursor: pointer;
   transition: background 0.3s;
+  margin: 5px;
 }
 
 button:hover {
@@ -63,21 +62,21 @@ button:hover {
   font-size: 20px;
   background: #333;
   color: #fff;
+  opacity: 0;
+  animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
 }
 
 .winner {
-  background: #00ff00;
-  box-shadow: 0 0 15px #00ff00;
+  background-color: green !important;
+  box-shadow: 0 0 15px green;
 }
 
 #message {
   margin-top: 20px;
   font-size: 18px;
   color: #ff0000;
-}
-
-#playerDisplay {
-  font-size: 30px;
-  margin-bottom: 20px;
-  color: #fff;
 }
