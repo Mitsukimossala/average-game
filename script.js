@@ -25,20 +25,33 @@ const submitBtn = document.getElementById('submitBtn');
 const endRoundBtn = document.getElementById('endRoundBtn');
 const playersContainer = document.getElementById('numbersContainer');
 const message = document.getElementById('message');
+const nameInput = document.getElementById('playerName');
+const guessInput = document.getElementById('playerGuess');
+
+// Vérifier si le nom est déjà dans localStorage
+let playerName = localStorage.getItem('playerName');
+if(playerName){
+  nameInput.value = playerName;
+  nameInput.readOnly = true;
+}
 
 // Soumettre un joueur
 submitBtn.addEventListener('click', () => {
-  const nameInput = document.getElementById('playerName');
-  const guessInput = document.getElementById('playerGuess');
-  const name = nameInput.value.trim();
+  let name = nameInput.value.trim();
   const guess = parseInt(guessInput.value);
 
   if(!name || isNaN(guess) || guess < 0 || guess > 100) return alert("Nom ou nombre invalide");
 
+  // Enregistrer le nom dans localStorage si c'est la première fois
+  if(!playerName){
+    playerName = name;
+    localStorage.setItem('playerName', playerName);
+    nameInput.readOnly = true;
+  }
+
   if(!playerRef){
     playerRef = push(ref(db,'players'));
-    set(playerRef, { name, guess, score: 10 });
-    nameInput.readOnly = true;
+    set(playerRef, { name: playerName, guess, score: 10 });
   } else {
     update(playerRef, { guess });
   }
