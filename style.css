@@ -1,146 +1,192 @@
-/* Reset & base */
-* {
-  box-sizing: border-box;
+/* Définir une palette de couleurs sombres et néon */
+:root {
+  --bg-color: #0c0c0c; /* Fond sombre */
+  --primary-color: #ff0000; /* Rouge néon */
+  --secondary-color: #00ff00; /* Vert néon pour le gagnant */
+  --accent-color: #ffcc00; /* Jaune pour les éléments cliquables */
+  --text-color: #fff; /* Texte blanc */
+  --border-color: #ff5555; /* Bordures rouge sombre */
+  --button-hover: #cc0000; /* Hover sur les boutons */
 }
+
+/* Fond général de la page */
 body {
   font-family: 'Courier New', Courier, monospace;
-  background: #0c0c0c;
-  color: #fff;
+  background: var(--bg-color);
+  color: var(--text-color);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
   margin: 0;
-  padding: 10px;
+  overflow: hidden;
 }
 
+/* Container du jeu */
 #game {
-  background: rgba(20, 20, 20, 0.95);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
-  width: 100%;
-  max-width: 450px;
   text-align: center;
+  background: rgba(20, 20, 20, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 20px var(--primary-color);
+  width: 400px;
+  position: relative;
+  overflow: hidden;
 }
 
-input[type="text"],
-input[type="number"] {
-  width: calc(50% - 20px);
-  padding: 10px;
-  margin: 10px 5px;
-  border: 2px solid #ff0000;
+/* Style des champs de saisie */
+input[type="text"], input[type="number"] {
+  padding: 12px;
+  margin: 12px;
+  border: 2px solid var(--border-color);
   border-radius: 5px;
   background: #222;
-  color: #fff;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  color: var(--text-color);
+  font-size: 16px;
+  transition: border 0.3s ease;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus {
-  border-color: #00ff00;
+/* Animation des champs de saisie au focus */
+input[type="text"]:focus, input[type="number"]:focus {
+  border-color: var(--accent-color);
   outline: none;
 }
 
+/* Style des boutons */
 button {
-  padding: 10px 20px;
-  background: #ff0000;
+  padding: 15px 30px;
+  background: var(--primary-color);
   border: none;
-  border-radius: 5px;
-  color: #fff;
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 16px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-button:hover:not(:disabled) {
-  background: #cc0000;
+button:hover {
+  background: var(--button-hover);
+  transform: scale(1.05);
 }
 
-button:disabled {
-  background: #660000;
-  cursor: not-allowed;
+/* Effet visuel sur les boutons avec des animations */
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background: var(--accent-color);
+  transition: width 0.5s, height 0.5s, top 0.5s, left 0.5s;
+  border-radius: 50%;
+  z-index: 0;
+  transform: translate(-50%, -50%);
 }
 
+button:hover::after {
+  width: 0;
+  height: 0;
+  top: 50%;
+  left: 50%;
+}
+
+/* Zone de résultats et de statistiques */
 #gameStatus {
-  margin-top: 15px;
-  font-size: 1.2rem;
-  display: flex;
-  justify-content: space-around;
-}
-
-#roundResults {
   margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
+#gameStatus p {
+  margin: 5px 0;
+}
+
+/* Conteneur des numéros de joueurs */
 #numbersContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 12px;
+  display: flex;
+  justify-content: center;
   margin-top: 20px;
 }
 
 .player-number {
-  background: #333;
-  border: 2px solid #ff0000;
-  border-radius: 50%;
+  width: 70px;
   height: 70px;
+  margin: 10px;
+  border: 3px solid var(--border-color);
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 0.9rem;
-  color: #fff;
+  font-size: 20px;
+  background: #333;
+  color: var(--text-color);
   opacity: 0;
   animation: fadeIn 1s forwards;
-  word-break: break-word;
-  padding: 10px;
-  user-select: none;
-  transition: background 0.3s, box-shadow 0.3s;
+  position: relative;
+  box-shadow: 0 0 10px var(--primary-color);
 }
 
-.player-number.winner {
-  background: #00ff00;
-  box-shadow: 0 0 15px #00ff00;
-}
-
-.player-number.eliminated {
-  opacity: 0.4;
-  text-decoration: line-through;
-  border-color: #444;
-}
-
-.player-name {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-#message {
-  margin-top: 20px;
-  font-size: 1.1rem;
-  color: #ff0000;
-  min-height: 1.5em;
-}
-
-#errorMessage {
-  position: fixed;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ff0000cc;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  display: none;
-  z-index: 9999;
-  max-width: 90vw;
-  text-align: center;
-}
-
+/* Animation des numéros des joueurs */
 @keyframes fadeIn {
   to {
     opacity: 1;
   }
+}
+
+/* Style pour le gagnant */
+.winner {
+  background: var(--secondary-color);
+  box-shadow: 0 0 20px var(--secondary-color);
+  transform: scale(1.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.player-number .player-name {
+  font-weight: bold;
+}
+
+/* Section des messages */
+#message {
+  margin-top: 20px;
+  font-size: 18px;
+  color: var(--primary-color);
+  text-shadow: 0 0 5px var(--primary-color);
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 1px;
+}
+
+/* Affichage d'un joueur éliminé */
+.eliminated {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* Ajout d'animation pour les résultats */
+#roundResults {
+  margin-top: 20px;
+}
+
+/* Section Nouvelle Partie */
+#newGameSection {
+  margin-top: 30px;
+  display: none;
+}
+
+#newGameSection button {
+  padding: 12px 25px;
+  background: #333;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-weight: bold;
+}
+
+#newGameSection button:hover {
+  background: var(--primary-color);
+  color: var(--text-color);
 }
