@@ -1,42 +1,39 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jeu de la Moyenne</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeu de la Moyenne - Alice in Borderland</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Page Nom -->
+  <!-- PAGE NOM -->
   <div id="pageName">
     <h1>Bienvenue</h1>
     <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
-    <button onclick="startGame()">Commencer</button>
+    <button onclick="startGame()">Jouer</button>
   </div>
 
-  <!-- Page Jeu -->
-  <div id="pageGame" style="display:none;">
+  <!-- PAGE JEU -->
+  <div id="pageGame" style="display:none">
     <h1>Jeu de la Moyenne</h1>
     <h2 id="playerNameDisplay"></h2>
-
     <div id="playerInputSection">
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
-      <button id="submitGuessBtn" onclick="submitGuess()">Soumettre</button>
+      <button onclick="submitGuess()">Soumettre</button>
     </div>
-
     <div id="gameStatus">
       <p id="score">Score: 0</p>
       <p id="status">Survie: Oui</p>
     </div>
-
     <div id="roundResults">
-      <button id="endRoundBtn" onclick="endRound()" style="display:none;">Terminer la Manche</button>
-      <button id="newRoundBtn" onclick="newRound()" style="display:none;">Nouvelle Manche</button>
+      <button id="endRoundBtn" onclick="endRound()" style="display:none">Terminer la Manche</button>
+      <button id="newRoundBtn" onclick="newRound()" style="display:none">Nouvelle Manche</button>
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
   </div>
 
-  <script type="module" src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
