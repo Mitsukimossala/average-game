@@ -3,42 +3,44 @@ let round = 0;
 let playerScore = 10;
 let isAlive = true;
 
-// Si un prénom est déjà en session, l'afficher
-const nameInput = document.getElementById('playerName');
+// Vérifier si un prénom est déjà enregistré dans sessionStorage
 const storedName = sessionStorage.getItem('playerName');
 if (storedName) {
-  nameInput.value = storedName;
-  nameInput.style.color = '#fff';
+  document.getElementById('playerName').value = storedName;
+  document.getElementById('playerName').style.color = '#fff';
 }
 
-// Soumettre un joueur
-window.submitPlayer = function() {
-  let playerName = nameInput.value.trim();
-  let playerGuess = parseInt(document.getElementById('playerGuess').value);
+// Soumettre un nombre
+function submitGuess() {
+  const nameInput = document.getElementById('playerName');
+  const guessInput = document.getElementById('playerGuess');
 
-  if (!playerName || isNaN(playerGuess) || playerGuess < 0 || playerGuess > 100) {
+  let name = nameInput.value.trim();
+  let guess = parseInt(guessInput.value);
+
+  if (!name || isNaN(guess) || guess < 0 || guess > 100) {
     alert('Veuillez entrer un nom valide et un nombre entre 0 et 100.');
     return;
   }
 
-  // Stocker le prénom en session
-  sessionStorage.setItem('playerName', playerName);
+  // Enregistrer le prénom dans sessionStorage
+  sessionStorage.setItem('playerName', name);
   nameInput.style.color = '#fff';
 
-  // Ajouter ou mettre à jour le joueur dans le tableau local
-  let existing = players.find(p => p.name === playerName);
+  // Ajouter ou mettre à jour le joueur
+  let existing = players.find(p => p.name === name);
   if (!existing) {
-    players.push({ name: playerName, guess: playerGuess, score: playerScore });
+    players.push({ name, guess, score: playerScore });
   } else {
-    existing.guess = playerGuess; // Met à jour le dernier choix
+    existing.guess = guess; // Met à jour le dernier choix
   }
 
-  document.getElementById('playerGuess').value = '';
+  guessInput.value = '';
   updateGameStatus();
 }
 
 // Terminer la manche
-window.endRound = function() {
+function endRound() {
   if (players.length < 2) {
     alert('Au moins deux joueurs sont nécessaires pour commencer la manche.');
     return;
@@ -51,11 +53,11 @@ window.endRound = function() {
   const counts = {};
   players.forEach(p => counts[p.guess] = (counts[p.guess] || 0) + 1);
 
-  // Déterminer le gagnant
+  // Déterminer gagnant
   let winner = null;
   let minDiff = Infinity;
   players.forEach(p => {
-    if (counts[p.guess] > 1) return; // doublon impossible de gagner
+    if (counts[p.guess] > 1) return; // doublon impossible
     const diff = Math.abs(p.guess - target);
     if (diff < minDiff) {
       minDiff = diff;
@@ -63,7 +65,7 @@ window.endRound = function() {
     }
   });
 
-  // Mettre à jour les scores
+  // Mettre à jour scores et vérifier élimination
   players.forEach(p => {
     if (counts[p.guess] > 1) p.score -= 2;
     else if (p === winner) p.score += 1;
@@ -74,13 +76,10 @@ window.endRound = function() {
 
   displayRoundResults(winner, sum, target);
   round++;
-
-  // Préparer la manche suivante (réinitialiser les guesses)
-  players.forEach(p => p.guess = 0);
-  document.getElementById('playerGuess').value = '';
+  resetForNextRound();
 }
 
-// Afficher résultats de la manche
+// Affichage des résultats de la manche
 function displayRoundResults(winner, sum, target) {
   const container = document.getElementById('numbersContainer');
   container.innerHTML = '';
@@ -99,8 +98,16 @@ function displayRoundResults(winner, sum, target) {
   updateGameStatus();
 }
 
-// Mettre à jour le statut du joueur
+// Mise à jour du statut du joueur
 function updateGameStatus() {
   document.getElementById('score').textContent = `Score: ${playerScore}`;
   document.getElementById('status').textContent = isAlive ? 'Survie: Oui' : 'Éliminé';
+}
+
+// Réinitialiser pour la manche suivante
+function resetForNextRound() {
+  players.forEach(p => p.guess = 0); // on garde les joueurs mais reset leur choix
+  document.getElementById('playerGuess').value = '';
+  document.getElementById('numbersContainer').innerHTML = '';
+  document.getElementById('message').textContent = '';
 }
