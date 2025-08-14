@@ -9,10 +9,11 @@
 <body>
   <div id="game">
     <h1>Jeu de la Moyenne</h1>
+
     <div id="playerInputSection">
       <input type="text" id="playerName" placeholder="Entrez votre nom" autocomplete="off" />
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100" />
-      <button onclick="submitPlayer()">Soumettre</button>
+      <button id="submitBtn">Soumettre</button>
     </div>
 
     <div id="gameStatus">
@@ -21,11 +22,14 @@
     </div>
 
     <div id="roundResults">
-      <button onclick="endRound()">Terminer la Manche</button>
+      <button id="endRoundBtn">Terminer la Manche</button>
+      <button id="newGameBtn" style="margin-left: 10px; background:#222; color:#fff;">Nouvelle Partie</button>
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
   </div>
+
+  <div id="errorMessage" role="alert" aria-live="assertive"></div>
 
   <script type="module" src="script.js"></script>
 </body>
