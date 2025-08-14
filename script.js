@@ -1,17 +1,8 @@
-// Import Firebase modules
+// Firebase imports (à garder dans ton index.html en <script type="module">)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-import {
-  getDatabase,
-  ref,
-  set,
-  push,
-  onValue,
-  remove,
-  update,
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// Config Firebase (à remplacer si besoin)
+// Config Firebase (remplace par la tienne)
 const firebaseConfig = {
   apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
   authDomain: "average-game-448ac.firebaseapp.com",
@@ -20,151 +11,158 @@ const firebaseConfig = {
   storageBucket: "average-game-448ac.appspot.com",
   messagingSenderId: "184831556477",
   appId: "1:184831556477:web:1ee0cffc102a50677caa14",
-  measurementId: "G-N4LQ1KH5W0",
 };
 
 // Initialisation Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
 // Récupération éléments DOM
 const playerNameInput = document.getElementById("playerName");
 const playerGuessInput = document.getElementById("playerGuess");
-const submitBtn = document.getElementById("submitBtn");
-const endRoundBtn = document.getElementById("endRoundBtn");
-const newGameBtn = document.getElementById("newGameBtn");
-const numbersContainer = document.getElementById("numbersContainer");
-const messageDisplay = document.getElementById("message");
+const submitBtn = document.querySelector("button[onclick='submitPlayer()']");
+const endRoundBtn = document.querySelector("button[onclick='endRound()']");
+const newGameBtn = document.createElement("button");
+newGameBtn.textContent = "Nouvelle Partie";
+newGameBtn.style.marginLeft = "10px";
+endRoundBtn.parentNode.insertBefore(newGameBtn, endRoundBtn.nextSibling);
+
 const scoreDisplay = document.getElementById("score");
 const statusDisplay = document.getElementById("status");
-const errorMessage = document.getElementById("errorMessage");
+const numbersContainer = document.getElementById("numbersContainer");
+const messageDisplay = document.getElementById("message");
 
-// Variables globales joueur
+// Variables état joueur
 let currentPlayerId = localStorage.getItem("playerId") || null;
-let currentPlayerName = localStorage.getItem("playerName") || null;
-let currentPlayerScore = 0;
+let currentPlayerName = localStorage.getItem("playerName") || "";
+let currentPlayerScore = null; // null = joueur pas encore en base
 let currentPlayers = {};
 
-// Initialisation UI si nom stocké
-if (currentPlayerName) {
-  playerNameInput.value = currentPlayerName;
-  playerNameInput.disabled = true; // on bloque la modification du nom pour éviter incohérence
-}
-
-// Afficher message d’erreur stylé
-function showError(msg) {
-  errorMessage.textContent = msg;
-  errorMessage.style.display = "block";
-  setTimeout(() => {
-    errorMessage.style.display = "none";
-  }, 3000);
-}
-
-// Met à jour le score et statut affiché
+// Fonction pour afficher score & status et gérer activation boutons
 function updateScoreAndStatus(score) {
-  scoreDisplay.textContent = `Score: ${score}`;
-  statusDisplay.textContent = score > 0 ? "Survie: Oui" : "Éliminé";
-  if (score <= 0) {
-    submitBtn.disabled = true;
-    playerGuessInput.disabled = true;
-  } else {
+  if (score === null) {
+    scoreDisplay.textContent = "Score: -";
+    statusDisplay.textContent = "Entrez votre nom et un nombre";
     submitBtn.disabled = false;
     playerGuessInput.disabled = false;
+    playerNameInput.disabled = false;
+  } else if (score > 0) {
+    scoreDisplay.textContent = `Score: ${score}`;
+    statusDisplay.textContent = "Survie: Oui";
+    submitBtn.disabled = false;
+    playerGuessInput.disabled = false;
+    playerNameInput.disabled = true; // nom bloqué après inscription
+  } else {
+    scoreDisplay.textContent = `Score: ${score}`;
+    statusDisplay.textContent = "Éliminé";
+    submitBtn.disabled = true;
+    playerGuessInput.disabled = true;
+    playerNameInput.disabled = true;
   }
 }
 
-// Soumettre un joueur / nouvelle mise à jour guess
-submitBtn.addEventListener("click", () => {
+// Affiche erreur temporaire
+function showError(msg) {
+  messageDisplay.textContent = msg;
+  setTimeout(() => {
+    if (messageDisplay.textContent === msg) {
+      messageDisplay.textContent = "";
+    }
+  }, 3000);
+}
+
+// Soumission joueur
+window.submitPlayer = function () {
   const name = playerNameInput.value.trim();
   const guess = parseInt(playerGuessInput.value);
 
   if (!name) {
-    showError("Le nom ne peut pas être vide !");
+    alert("Entrez un nom valide");
     return;
   }
   if (isNaN(guess) || guess < 0 || guess > 100) {
-    showError("Veuillez saisir un nombre entre 0 et 100.");
+    alert("Entrez un nombre entre 0 et 100");
     return;
   }
 
-  // Créer id si besoin
   if (!currentPlayerId) {
-    currentPlayerId = Date.now().toString();
+    // Création nouveau joueur dans Firebase
+    const newPlayerRef = push(ref(db, "players"));
+    currentPlayerId = newPlayerRef.key;
     currentPlayerName = name;
     localStorage.setItem("playerId", currentPlayerId);
     localStorage.setItem("playerName", currentPlayerName);
-    playerNameInput.disabled = true;
+
+    set(newPlayerRef, {
+      name: currentPlayerName,
+      guess: guess,
+      score: 0,
+    });
+  } else {
+    // Mise à jour guess du joueur existant
+    update(ref(db, `players/${currentPlayerId}`), {
+      guess: guess,
+    });
   }
 
-  // Enregistrer dans Firebase
-  set(ref(db, `players/${currentPlayerId}`), {
-    name: currentPlayerName,
-    guess,
-    score: currentPlayerScore > 0 ? currentPlayerScore : 0,
-  });
-
   playerGuessInput.value = "";
-});
+  updateScoreAndStatus(currentPlayerScore);
+};
 
-// Écoute temps réel des joueurs
+// Écoute les joueurs en temps réel
 onValue(ref(db, "players"), (snapshot) => {
   currentPlayers = snapshot.val() || {};
-
   numbersContainer.innerHTML = "";
+
   let foundCurrentPlayer = false;
 
   Object.entries(currentPlayers).forEach(([id, player]) => {
     const div = document.createElement("div");
     div.className = "player-number";
-
-    if (id === currentPlayerId) div.style.borderColor = "#00ff00";
-    if (player.score <= 0) div.classList.add("eliminated");
-
-    div.innerHTML = `<div class="player-name">${player.name}</div>${player.guess} (${player.score})`;
+    div.innerHTML = `<div class="player-name">${player.name}</div>${player.guess ?? "-"}`;
     numbersContainer.appendChild(div);
 
     if (id === currentPlayerId) {
       foundCurrentPlayer = true;
-      currentPlayerScore = player.score;
-      updateScoreAndStatus(player.score);
+      currentPlayerScore = player.score ?? 0;
+      updateScoreAndStatus(currentPlayerScore);
     }
   });
 
-  // Si joueur non trouvé, remettre état
   if (!foundCurrentPlayer) {
-    currentPlayerScore = 0;
-    updateScoreAndStatus(0);
+    currentPlayerScore = null;
+    updateScoreAndStatus(null);
   }
 });
 
-// Fin de manche -> calcul moyenne, mise à jour scores, etc.
-endRoundBtn.addEventListener("click", () => {
+// Fin de manche
+window.endRound = function () {
   if (Object.keys(currentPlayers).length === 0) {
     showError("Aucun joueur connecté.");
     return;
   }
 
-  // Calcul somme et moyenne
+  // Somme et moyenne (avec guesses valides)
   let somme = 0;
   let nbValides = 0;
-  for (const player of Object.values(currentPlayers)) {
+  Object.values(currentPlayers).forEach((player) => {
     if (typeof player.guess === "number") {
       somme += player.guess;
       nbValides++;
     }
-  }
+  });
+
   if (nbValides === 0) {
-    showError("Pas de nombres valides pour cette manche.");
+    showError("Pas de nombres valides cette manche.");
     return;
   }
 
   const moyenne = (somme / nbValides) * 0.8;
 
-  // Trouver gagnant (le plus proche de moyenne)
+  // Trouver gagnant (plus proche de moyenne)
   let gagnantId = null;
   let plusPetitEcart = Infinity;
-  for (const [id, player] of Object.entries(currentPlayers)) {
+  Object.entries(currentPlayers).forEach(([id, player]) => {
     if (typeof player.guess === "number") {
       const ecart = Math.abs(player.guess - moyenne);
       if (ecart < plusPetitEcart) {
@@ -172,11 +170,11 @@ endRoundBtn.addEventListener("click", () => {
         gagnantId = id;
       }
     }
-  }
+  });
 
-  // Mise à jour des scores
+  // Mise à jour scores
   Object.entries(currentPlayers).forEach(([id, player]) => {
-    let nouveauScore = player.score || 10;
+    let nouveauScore = player.score ?? 0;
 
     if (id === gagnantId) {
       nouveauScore += 10;
@@ -191,27 +189,24 @@ endRoundBtn.addEventListener("click", () => {
   // Affichage résultats
   messageDisplay.textContent = `Somme: ${somme}, Moyenne × 0.8: ${moyenne.toFixed(
     2
-  )}, Gagnant: ${
-    gagnantId ? currentPlayers[gagnantId].name : "Aucun"
-  }`;
+  )}, Gagnant: ${gagnantId ? currentPlayers[gagnantId].name : "Aucun"}`;
 
-  // Marquer gagnant visuellement
+  // Met à jour affichage joueurs gagnant
   Array.from(numbersContainer.children).forEach((div) => {
     div.classList.remove("winner");
     const nameDiv = div.querySelector(".player-name");
     if (!nameDiv) return;
-    const playerNameText = nameDiv.textContent;
     if (
       gagnantId &&
       currentPlayers[gagnantId] &&
-      playerNameText === currentPlayers[gagnantId].name
+      nameDiv.textContent === currentPlayers[gagnantId].name
     ) {
       div.classList.add("winner");
     }
   });
-});
+};
 
-// Nouvelle partie = reset des données pour tous
+// Nouvelle partie : reset scores et guesses
 newGameBtn.addEventListener("click", () => {
   if (
     confirm(
@@ -219,11 +214,11 @@ newGameBtn.addEventListener("click", () => {
     )
   ) {
     remove(ref(db, "players"));
-    currentPlayerScore = 0;
-    updateScoreAndStatus(0);
+    currentPlayerScore = null;
+    updateScoreAndStatus(null);
     messageDisplay.textContent = "";
     numbersContainer.innerHTML = "";
     playerGuessInput.value = "";
+    playerNameInput.value = currentPlayerName; // garde le nom affiché
   }
 });
-
