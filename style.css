@@ -12,10 +12,10 @@ body {
 
 #game {
   text-align: center;
-  background: rgba(20,20,20,0.9);
+  background: rgba(20, 20, 20, 0.9);
   border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 0 15px rgba(255,0,0,0.8);
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
   width: 400px;
 }
 
@@ -38,13 +38,15 @@ button {
   transition: background 0.3s;
 }
 
-button:hover { background: #cc0000; }
+button:hover {
+  background: #cc0000;
+}
 
 #numbersContainer {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .player-number {
@@ -56,20 +58,27 @@ button:hover { background: #cc0000; }
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 18px;
+  font-size: 16px;
   background: #333;
   color: #fff;
   opacity: 0;
   animation: fadeIn 1s forwards;
+  flex-direction: column;
 }
 
-@keyframes fadeIn { to { opacity:1; } }
+.player-number .player-name {
+  font-size: 12px;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
 
 .winner {
   background: #00ff00;
-  box-shadow: 0 0 20px #00ff00;
-  transform: scale(1.2);
-  transition: all 0.5s;
+  box-shadow: 0 0 15px #00ff00;
 }
 
 #message {
