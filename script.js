@@ -24,6 +24,24 @@ let message = document.getElementById('message');
 let playerScore = 0;
 let isAlive = true;
 
+// Contrôle des boutons
+const newRoundBtn = document.getElementById('newRoundBtn');
+const newGameBtn = document.getElementById('newGameBtn');
+const endRoundBtn = document.getElementById('endRoundBtn');
+
+function updateButtonAccess() {
+  const name = document.getElementById('playerName').value.trim();
+  if(name === "Im") {
+    newRoundBtn.style.display = 'inline-block';
+    newGameBtn.style.display = 'inline-block';
+    endRoundBtn.style.display = 'inline-block';
+  } else {
+    newRoundBtn.style.display = 'none';
+    newGameBtn.style.display = 'none';
+    endRoundBtn.style.display = 'none';
+  }
+}
+
 // Soumettre un nombre
 window.submitGuess = function(){
   const nameInput = document.getElementById('playerName');
@@ -33,14 +51,15 @@ window.submitGuess = function(){
 
   if(!name || isNaN(guess) || guess < 0 || guess > 100) return alert('Nom ou nombre invalide');
 
-  // Ajouter ou mettre à jour le joueur sur Firebase
+  updateButtonAccess();
+
   const newPlayerRef = push(ref(db,'players'));
   set(newPlayerRef, { name, guess, score: playerScore, id: newPlayerRef.key });
 
   guessInput.value = '';
 }
 
-// Afficher les résultats seulement à la fin de la manche
+// Terminer la manche
 window.endRound = function(){
   onValue(ref(db,'players'), snapshot=>{
     const data = snapshot.val() || {};
@@ -50,11 +69,9 @@ window.endRound = function(){
     const sum = playerList.reduce((a,p)=>a+p.guess,0);
     const target = sum / playerList.length * 0.8;
 
-    // Compter doublons
     const counts = {};
     playerList.forEach(p=>counts[p.guess]=(counts[p.guess]||0)+1);
 
-    // Déterminer gagnant
     let winner = null;
     let minDiff = Infinity;
     playerList.forEach(p=>{
@@ -66,8 +83,7 @@ window.endRound = function(){
     // Mettre à jour scores
     playerList.forEach(p=>{
       let newScore = p.score;
-      if(p !== winner) newScore = Math.max(-10,newScore-1); // perdant -1
-      // gagnant +0
+      if(p !== winner) newScore = Math.max(-10,newScore-1); // perdants -1
       update(ref(db,'players/'+p.id),{score:newScore});
     });
 
@@ -76,8 +92,9 @@ window.endRound = function(){
     playerList.forEach(p=>{
       const div = document.createElement('div');
       div.className='player-number';
-      if(p===winner) div.classList.add('winner');
       div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+      if(p===winner) div.style.backgroundColor = 'green';
+      else div.style.backgroundColor = 'red';
       playersContainer.appendChild(div);
     });
 
@@ -85,29 +102,26 @@ window.endRound = function(){
   }, {onlyOnce:true});
 }
 
-// Nouvelle manche : efface seulement les nombres mais garde score
+// Nouvelle manche : efface seulement les nombres
 window.newRound = function(){
-  // Réinitialiser guesses
   onValue(ref(db,'players'), snapshot=>{
     const data = snapshot.val() || {};
     Object.values(data).forEach(p=>{
       update(ref(db,'players/'+p.id),{guess:0});
     });
-  },{onlyOnce:true});
-
+  }, {onlyOnce:true});
   playersContainer.innerHTML='';
   message.textContent='';
 }
 
-// Nouvelle partie : supprime tout (ronds + noms + Firebase), score remis à 0
+// Nouvelle partie : supprime tout
 window.newGame = function(){
   onValue(ref(db,'players'), snapshot=>{
     const data = snapshot.val() || {};
     Object.values(data).forEach(p=>{
       remove(ref(db,'players/'+p.id));
     });
-  },{onlyOnce:true});
-
+  }, {onlyOnce:true});
   playersContainer.innerHTML='';
   message.textContent='';
   playerScore = 0;
@@ -115,3 +129,4 @@ window.newGame = function(){
   document.getElementById('score').textContent=`Score: ${playerScore}`;
   document.getElementById('status').textContent=isAlive?'Survie: Oui':'Éliminé';
 }
+
