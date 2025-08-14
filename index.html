@@ -9,21 +9,22 @@
 <body>
   <div id="game">
     <h1>Jeu de la Moyenne</h1>
-
     <div id="playerInputSection">
       <input type="text" id="playerName" placeholder="Entrez votre nom">
-      <button onclick="setPlayerName()">Confirmer Nom</button>
-    </div>
-
-    <div id="guessSection" style="display:none;">
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
-      <button onclick="submitGuess()">Soumettre Nombre</button>
+      <button onclick="submitPlayer()">Soumettre</button>
     </div>
-
-    <div id="numbersContainer"></div>
-    <p id="message"></p>
+    <div id="gameStatus">
+      <p id="score">Score: 10</p>
+      <p id="status">Survie: Oui</p>
+    </div>
+    <div id="roundResults">
+      <button onclick="endRound()">Terminer la Manche</button>
+      <div id="numbersContainer"></div>
+      <p id="message"></p>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
