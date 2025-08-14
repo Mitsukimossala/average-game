@@ -1,82 +1,21 @@
 body {
-  font-family: 'Courier New', Courier, monospace;
-  background: #0c0c0c;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  overflow: hidden;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
 
 .page {
+  margin-top: 50px;
+}
+
+.hidden {
   display: none;
-  text-align: center;
-  width: 400px;
 }
 
-.page.active {
-  display: block;
-}
-
-input[type="text"], input[type="number"] {
-  padding: 10px;
-  margin: 10px;
-  border: 2px solid #ff0000;
-  border-radius: 5px;
-  background: #222;
-  color: #fff;
+#joueurs {
+  margin-top: 20px;
 }
 
 button {
+  margin: 5px;
   padding: 10px 20px;
-  background: #ff0000;
-  border: none;
-  border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: #cc0000;
-}
-
-#numbersContainer {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-
-.player-number {
-  width: 60px;
-  height: 60px;
-  margin: 10px;
-  border: 2px solid #ff0000;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 16px;
-  background: #333;
-  color: #fff;
-  opacity: 0;
-  animation: fadeIn 1s forwards;
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-.winner {
-  background: #00ff00;
-  box-shadow: 0 0 15px #00ff00;
-}
-
-#message {
-  margin-top: 20px;
-  font-size: 16px;
-  color: #ff0000;
 }
