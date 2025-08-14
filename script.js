@@ -1,9 +1,17 @@
-// Import Firebase
+// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  push,
+  onValue,
+  remove,
+  update,
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// Config Firebase
+// Config Firebase (à remplacer si besoin)
 const firebaseConfig = {
   apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
   authDomain: "average-game-448ac.firebaseapp.com",
@@ -12,7 +20,7 @@ const firebaseConfig = {
   storageBucket: "average-game-448ac.appspot.com",
   messagingSenderId: "184831556477",
   appId: "1:184831556477:web:1ee0cffc102a50677caa14",
-  measurementId: "G-N4LQ1KH5W0"
+  measurementId: "G-N4LQ1KH5W0",
 };
 
 // Initialisation Firebase
@@ -20,182 +28,202 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-// Récupérer éléments HTML
+// Récupération éléments DOM
 const playerNameInput = document.getElementById("playerName");
 const playerGuessInput = document.getElementById("playerGuess");
+const submitBtn = document.getElementById("submitBtn");
+const endRoundBtn = document.getElementById("endRoundBtn");
+const newGameBtn = document.getElementById("newGameBtn");
 const numbersContainer = document.getElementById("numbersContainer");
 const messageDisplay = document.getElementById("message");
 const scoreDisplay = document.getElementById("score");
 const statusDisplay = document.getElementById("status");
+const errorMessage = document.getElementById("errorMessage");
 
-// Créer bouton Nouvelle Partie et l'ajouter sous #game
-const gameDiv = document.getElementById("game");
-const newGameBtn = document.createElement("button");
-newGameBtn.textContent = "Nouvelle Partie";
-newGameBtn.style.marginTop = "20px";
-gameDiv.appendChild(newGameBtn);
-
-// Variables globales
+// Variables globales joueur
 let currentPlayerId = localStorage.getItem("playerId") || null;
 let currentPlayerName = localStorage.getItem("playerName") || null;
 let currentPlayerScore = 0;
 let currentPlayers = {};
 
-// Si on a un nom sauvegardé, on l'affiche dans l'input
+// Initialisation UI si nom stocké
 if (currentPlayerName) {
   playerNameInput.value = currentPlayerName;
+  playerNameInput.disabled = true; // on bloque la modification du nom pour éviter incohérence
 }
 
-// Fonction pour mettre à jour le score et statut affiché
+// Afficher message d’erreur stylé
+function showError(msg) {
+  errorMessage.textContent = msg;
+  errorMessage.style.display = "block";
+  setTimeout(() => {
+    errorMessage.style.display = "none";
+  }, 3000);
+}
+
+// Met à jour le score et statut affiché
 function updateScoreAndStatus(score) {
   scoreDisplay.textContent = `Score: ${score}`;
   statusDisplay.textContent = score > 0 ? "Survie: Oui" : "Éliminé";
+  if (score <= 0) {
+    submitBtn.disabled = true;
+    playerGuessInput.disabled = true;
+  } else {
+    submitBtn.disabled = false;
+    playerGuessInput.disabled = false;
+  }
 }
 
-// Soumettre un joueur
-window.submitPlayer = function () {
+// Soumettre un joueur / nouvelle mise à jour guess
+submitBtn.addEventListener("click", () => {
   const name = playerNameInput.value.trim();
   const guess = parseInt(playerGuessInput.value);
 
-  if (!name || isNaN(guess) || guess < 0 || guess > 100) {
-    alert("Nom ou nombre invalide");
+  if (!name) {
+    showError("Le nom ne peut pas être vide !");
+    return;
+  }
+  if (isNaN(guess) || guess < 0 || guess > 100) {
+    showError("Veuillez saisir un nombre entre 0 et 100.");
     return;
   }
 
-  // Si pas d'id, on crée un nouvel ID et on sauvegarde localement
+  // Créer id si besoin
   if (!currentPlayerId) {
     currentPlayerId = Date.now().toString();
-    localStorage.setItem("playerId", currentPlayerId);
-    localStorage.setItem("playerName", name);
     currentPlayerName = name;
+    localStorage.setItem("playerId", currentPlayerId);
+    localStorage.setItem("playerName", currentPlayerName);
+    playerNameInput.disabled = true;
   }
 
-  // On ajoute ou met à jour dans Firebase
+  // Enregistrer dans Firebase
   set(ref(db, `players/${currentPlayerId}`), {
     name: currentPlayerName,
-    guess: guess,
-    score: currentPlayerScore > 0 ? currentPlayerScore : 0
+    guess,
+    score: currentPlayerScore > 0 ? currentPlayerScore : 0,
   });
 
   playerGuessInput.value = "";
-};
+});
 
-// Écouter joueurs en temps réel
+// Écoute temps réel des joueurs
 onValue(ref(db, "players"), (snapshot) => {
   currentPlayers = snapshot.val() || {};
 
-  // Mettre à jour l’affichage des joueurs
   numbersContainer.innerHTML = "";
   let foundCurrentPlayer = false;
 
   Object.entries(currentPlayers).forEach(([id, player]) => {
     const div = document.createElement("div");
     div.className = "player-number";
-    if (id === currentPlayerId) div.style.borderColor = "#00ff00"; // Vert pour toi
-    if (player.score <= 0) div.style.opacity = "0.3"; // Éliminé visuel
+
+    if (id === currentPlayerId) div.style.borderColor = "#00ff00";
+    if (player.score <= 0) div.classList.add("eliminated");
+
     div.innerHTML = `<div class="player-name">${player.name}</div>${player.guess} (${player.score})`;
     numbersContainer.appendChild(div);
 
     if (id === currentPlayerId) {
-      currentPlayerScore = player.score;
       foundCurrentPlayer = true;
+      currentPlayerScore = player.score;
+      updateScoreAndStatus(player.score);
     }
   });
 
-  // Si on ne trouve pas notre joueur dans la liste, score à 0
-  if (!foundCurrentPlayer) currentPlayerScore = 0;
-  updateScoreAndStatus(currentPlayerScore);
+  // Si joueur non trouvé, remettre état
+  if (!foundCurrentPlayer) {
+    currentPlayerScore = 0;
+    updateScoreAndStatus(0);
+  }
 });
 
-// Fin de manche
-window.endRound = function () {
-  const playerList = Object.entries(currentPlayers).map(([id, p]) => ({ ...p, id }));
-  if (playerList.length === 0) {
-    alert("Pas de joueur !");
+// Fin de manche -> calcul moyenne, mise à jour scores, etc.
+endRoundBtn.addEventListener("click", () => {
+  if (Object.keys(currentPlayers).length === 0) {
+    showError("Aucun joueur connecté.");
     return;
   }
 
-  const sum = playerList.reduce((a, p) => a + p.guess, 0);
-  const target = (sum / playerList.length) * 0.8;
-
-  // Compter doublons
-  const counts = {};
-  playerList.forEach((p) => (counts[p.guess] = (counts[p.guess] || 0) + 1));
-
-  // Déterminer gagnant
-  let winner = null;
-  let minDiff = Infinity;
-  playerList.forEach((p) => {
-    if (counts[p.guess] > 1) return; // doublon, impossible de gagner
-    const diff = Math.abs(p.guess - target);
-    if (diff < minDiff) {
-      minDiff = diff;
-      winner = p;
+  // Calcul somme et moyenne
+  let somme = 0;
+  let nbValides = 0;
+  for (const player of Object.values(currentPlayers)) {
+    if (typeof player.guess === "number") {
+      somme += player.guess;
+      nbValides++;
     }
-  });
+  }
+  if (nbValides === 0) {
+    showError("Pas de nombres valides pour cette manche.");
+    return;
+  }
 
-  // Mettre à jour scores
-  playerList.forEach((p) => {
-    let newScore = p.score;
-    if (counts[p.guess] > 1) newScore -= 2;
-    else if (p === winner) newScore += 1;
-    else newScore -= 1;
+  const moyenne = (somme / nbValides) * 0.8;
 
-    // Vérifier élimination
-    if (newScore <= 0) {
-      remove(ref(db, "players/" + p.id));
-      if (p.id === currentPlayerId) currentPlayerScore = 0;
+  // Trouver gagnant (le plus proche de moyenne)
+  let gagnantId = null;
+  let plusPetitEcart = Infinity;
+  for (const [id, player] of Object.entries(currentPlayers)) {
+    if (typeof player.guess === "number") {
+      const ecart = Math.abs(player.guess - moyenne);
+      if (ecart < plusPetitEcart) {
+        plusPetitEcart = ecart;
+        gagnantId = id;
+      }
+    }
+  }
+
+  // Mise à jour des scores
+  Object.entries(currentPlayers).forEach(([id, player]) => {
+    let nouveauScore = player.score || 10;
+
+    if (id === gagnantId) {
+      nouveauScore += 10;
     } else {
-      update(ref(db, "players/" + p.id), { score: newScore });
-      if (p.id === currentPlayerId) currentPlayerScore = newScore;
+      nouveauScore -= 10;
+    }
+    if (nouveauScore < 0) nouveauScore = 0;
+
+    update(ref(db, `players/${id}`), { score: nouveauScore });
+  });
+
+  // Affichage résultats
+  messageDisplay.textContent = `Somme: ${somme}, Moyenne × 0.8: ${moyenne.toFixed(
+    2
+  )}, Gagnant: ${
+    gagnantId ? currentPlayers[gagnantId].name : "Aucun"
+  }`;
+
+  // Marquer gagnant visuellement
+  Array.from(numbersContainer.children).forEach((div) => {
+    div.classList.remove("winner");
+    const nameDiv = div.querySelector(".player-name");
+    if (!nameDiv) return;
+    const playerNameText = nameDiv.textContent;
+    if (
+      gagnantId &&
+      currentPlayers[gagnantId] &&
+      playerNameText === currentPlayers[gagnantId].name
+    ) {
+      div.classList.add("winner");
     }
   });
+});
 
-  // Affichage final
-  numbersContainer.innerHTML = "";
-  playerList.forEach((p) => {
-    const div = document.createElement("div");
-    div.className = "player-number";
-    if (p === winner) div.classList.add("winner");
-    div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
-    numbersContainer.appendChild(div);
-  });
-
-  messageDisplay.textContent = `Somme: ${sum}, Moyenne × 0.8: ${target.toFixed(
-    2
-  )}, Gagnant: ${winner ? winner.name : "Aucun"}`;
-
-  updateScoreAndStatus(currentPlayerScore);
-};
-
-// Nouvelle partie : supprimer tous les joueurs
-newGameBtn.addEventListener("click", async () => {
-  if (!confirm("Tu es sûr de vouloir recommencer une nouvelle partie ?")) return;
-
-  try {
-    console.log("Suppression des joueurs en cours...");
-    await remove(ref(db, "players"));
-    console.log("Suppression terminée");
-
-    // Reset localStorage
-    localStorage.removeItem("playerId");
-    localStorage.removeItem("playerName");
-
-    // Reset variables locales
-    currentPlayerId = null;
-    currentPlayerName = null;
+// Nouvelle partie = reset des données pour tous
+newGameBtn.addEventListener("click", () => {
+  if (
+    confirm(
+      "Êtes-vous sûr de vouloir démarrer une nouvelle partie ? Cela réinitialisera tous les scores et nombres."
+    )
+  ) {
+    remove(ref(db, "players"));
     currentPlayerScore = 0;
-
-    // Reset UI
-    playerNameInput.value = "";
-    playerGuessInput.value = "";
-    numbersContainer.innerHTML = "";
-    messageDisplay.textContent = "";
     updateScoreAndStatus(0);
-
-    alert("Nouvelle partie démarrée !");
-  } catch (error) {
-    console.error("Erreur lors de la réinitialisation de la partie :", error);
-    alert("Erreur lors de la réinitialisation, regarde la console.");
+    messageDisplay.textContent = "";
+    numbersContainer.innerHTML = "";
+    playerGuessInput.value = "";
   }
 });
+
