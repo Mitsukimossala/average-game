@@ -63,19 +63,23 @@ button:hover {
   background: #333;
   color: #fff;
   opacity: 0;
-  animation: fadeIn 1s forwards;
+  animation: fadeIn 0.8s forwards;
   flex-direction: column;
 }
 
 @keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
+  to { opacity: 1; }
 }
 
 .winner {
   background: #00ff00;
   box-shadow: 0 0 15px #00ff00;
+  animation: blink 0.8s infinite alternate;
+}
+
+@keyframes blink {
+  from { box-shadow: 0 0 15px #00ff00; }
+  to { box-shadow: 0 0 25px #00ff00; }
 }
 
 #message {
