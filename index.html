@@ -3,46 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Average Game - Multijoueur</title>
+  <title>The Average Game</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
   <div id="game">
-    <h1>Le Jeu de la Moyenne - Multijoueur</h1>
-    <p>Choisis un nombre entre 1 et 100</p>
-    <input type="number" id="playerInput" min="1" max="100">
-    <button onclick="submitGuess()">Soumettre</button>
-    <p id="result"></p>
-    <p>Moyenne actuelle: <span id="average">0</span></p>
+    <h1>Le Jeu de la Moyenne</h1>
+    <p>Choisis un nombre entre 0 et 100</p>
+    <input type="number" id="playerInput" min="0" max="100">
+    <div>
+      <button onclick="submitGuess()">Soumettre</button>
+      <button onclick="endRound()">Terminer la manche</button>
+    </div>
     <p>Score: <span id="score">0</span></p>
-    <p>Vies: <span id="lives"></span></p>
-    <h3>Classement:</h3>
-    <ul id="leaderboard"></ul>
+    <p id="status"></p>
   </div>
 
-  <!-- Firebase SDK (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="script.js"></script>
-
-
-  <script>
-    // Config Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
-      authDomain: "average-game-448ac.firebaseapp.com",
-      databaseURL: "https://average-game-448ac-default-rtdb.firebaseio.com",
-      projectId: "average-game-448ac",
-      storageBucket: "average-game-448ac.firebasestorage.app",
-      messagingSenderId: "184831556477",
-      appId: "1:184831556477:web:1ee0cffc102a50677caa14",
-      measurementId: "G-N4LQ1KH5W0"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-  </script>
-
+  <!-- Ton script multijoueur -->
   <script src="script.js"></script>
 </body>
 </html>
