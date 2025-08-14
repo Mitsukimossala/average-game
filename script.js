@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// Config Firebase
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
   authDomain: "average-game-448ac.firebaseapp.com",
@@ -18,97 +18,138 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-let players = [];
+// Variables locales
 let playerName = '';
 let playerScore = 0;
+let isAlive = true;
 
-// Écoute Firebase
-const playersContainer = document.getElementById('numbersContainer');
-onValue(ref(db, 'players'), (snapshot) => {
-  const data = snapshot.val() || {};
-  players = Object.values(data);
-  displayPlayers();
-});
+// Elements
+const namePage = document.getElementById('namePage');
+const gamePage = document.getElementById('gamePage');
+const playerDisplay = document.getElementById('playerDisplay');
+const numbersContainer = document.getElementById('numbersContainer');
+const message = document.getElementById('message');
+const scoreDisplay = document.getElementById('score');
+const statusDisplay = document.getElementById('status');
+const endRoundBtn = document.getElementById('endRoundBtn');
+
+// Valider le nom
+window.submitName = function() {
+  const input = document.getElementById('playerName');
+  const name = input.value.trim();
+  if (!name) return alert("Entrez un nom !");
+  playerName = name;
+  playerScore = 0;
+  isAlive = true;
+  playerDisplay.textContent = playerName;
+  playerDisplay.classList.remove('hidden');
+
+  namePage.classList.add('hidden');
+  gamePage.classList.remove('hidden');
+
+  // Afficher bouton "Terminer la Manche" uniquement si le joueur s'appelle "Im"
+  endRoundBtn.style.display = playerName === "Im" ? "inline-block" : "none";
+
+  // Ajouter le joueur à Firebase
+  const playerRef = push(ref(db, 'players'));
+  set(playerRef, { name: playerName, guess: null, score: playerScore, isAlive: isAlive, id: playerRef.key });
+
+  updateGameStatus();
+}
 
 // Soumettre un nombre
 window.submitGuess = function() {
-  const nameInput = document.getElementById('playerName');
   const guessInput = document.getElementById('playerGuess');
-  const name = nameInput.value.trim();
-  const guess = parseInt(guessInput.value);
+  let guess = parseInt(guessInput.value);
+  if (isNaN(guess) || guess < 0 || guess > 100) return alert("Nombre invalide (0-100)");
 
-  if (!name || isNaN(guess) || guess < 0 || guess > 100) return alert("Nom ou nombre invalide");
+  // Mettre à jour le joueur dans Firebase
+  onValue(ref(db, 'players'), (snapshot)=>{
+    const data = snapshot.val() || {};
+    let playerEntry = Object.entries(data).find(([id,p])=>p.name===playerName);
+    if(playerEntry){
+      const [id,p] = playerEntry;
+      update(ref(db, 'players/'+id), { guess: guess });
+    }
+  }, { onlyOnce: true });
 
-  playerName = name;
-
-  // Ajoute ou met à jour dans Firebase
-  const playerRef = ref(db, 'players/' + playerName);
-  set(playerRef, { name: playerName, guess: guess, score: playerScore });
-
-  nameInput.style.display = 'none';
-  document.getElementById('playerDisplay').textContent = playerName;
   guessInput.value = '';
-};
-
-// Affichage
-function displayPlayers() {
-  playersContainer.innerHTML = '';
-  players.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'player-number';
-    if (p.score > 0) p.score = 0;
-    if (p.score < -10) p.score = -10;
-    div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
-    playersContainer.appendChild(div);
-  });
 }
 
-// Terminer la manche
+// Écouter tous les joueurs en temps réel
+onValue(ref(db, 'players'), (snapshot)=>{
+  const data = snapshot.val() || {};
+  numbersContainer.innerHTML = '';
+  Object.values(data).forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'player-number';
+    // Afficher seulement si la manche est terminée
+    div.textContent = p.guess !== null ? `${p.name}: ${p.guess} (${p.score})` : `${p.name}: ??? (${p.score})`;
+    numbersContainer.appendChild(div);
+  });
+});
+
+// Terminer la manche (seul "Im")
 window.endRound = function() {
-  if (players.length < 2) return alert("Au moins 2 joueurs requis");
+  onValue(ref(db, 'players'), (snapshot)=>{
+    const data = snapshot.val() || {};
+    const players = Object.values(data);
 
-  const sum = players.reduce((a,p) => a + p.guess, 0);
-  const target = (sum / players.length) * 0.8;
+    if(players.length === 0) return alert("Aucun joueur !");
+    const sum = players.reduce((acc,p)=>acc+(p.guess||0),0);
+    const target = (sum/players.length)*0.8;
 
-  // Comptage doublons
-  const counts = {};
-  players.forEach(p => counts[p.guess] = (counts[p.guess]||0)+1);
+    const counts = {};
+    players.forEach(p => counts[p.guess] = (counts[p.guess]||0)+1);
 
-  // Gagnant
-  let winner = null;
-  let minDiff = Infinity;
-  players.forEach(p => {
-    if (counts[p.guess] > 1) return;
-    const diff = Math.abs(p.guess - target);
-    if (diff < minDiff) { minDiff = diff; winner = p; }
-  });
+    let winner = null;
+    let minDiff = Infinity;
+    players.forEach(p=>{
+      if(counts[p.guess]>1) return;
+      const diff = Math.abs(p.guess-target);
+      if(diff<minDiff){ minDiff=diff; winner=p; }
+    });
 
-  // Mettre à jour score
-  players.forEach(p => {
-    let newScore = p.score;
-    if (p === winner) newScore += 0; // gagne rien
-    else newScore -= 1; // perd 1 si pas gagnant ou doublon
-    if (newScore > 0) newScore = 0;
-    if (newScore < -10) newScore = -10;
-    update(ref(db, 'players/' + p.name), { score: newScore });
-  });
+    // Mettre à jour les scores (0 max, -10 min)
+    Object.values(data).forEach(p=>{
+      let newScore = p.score;
+      if(p===winner) newScore = newScore; // Gagnant : aucun point
+      else newScore -=1; // Perdant : -1
+      if(newScore<-10) newScore=-10;
+      if(newScore>0) newScore=0;
+      update(ref(db,'players/'+p.id), { score: newScore });
+    });
 
-  displayPlayers();
-  document.getElementById('message').textContent = `Somme: ${sum}, Moyenne × 0.8: ${target.toFixed(2)}, Gagnant: ${winner ? winner.name : 'Aucun'}`;
-};
+    // Affichage final
+    numbersContainer.innerHTML='';
+    Object.values(data).forEach(p=>{
+      const div = document.createElement('div');
+      div.className='player-number';
+      if(winner && winner.name===p.name) div.classList.add('winner');
+      div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+      numbersContainer.appendChild(div);
+    });
 
-// Nouvelle Manche
-window.newRound = function() {
-  players.forEach(p => update(ref(db, 'players/' + p.name), { guess: 0 }));
-  displayPlayers();
-  document.getElementById('message').textContent = '';
-};
+    message.textContent=winner?`Somme: ${sum}, Moyenne ×0.8: ${target.toFixed(2)}, Gagnant: ${winner.name}`:'';
+  }, { onlyOnce:true });
+}
 
 // Nouvelle Partie
 window.newGame = function() {
-  players.forEach(p => remove(ref(db, 'players/' + p.name)));
-  players = [];
-  document.getElementById('message').textContent = '';
-  document.getElementById('playerName').style.display = 'block';
-  document.getElementById('playerDisplay').textContent = '';
-};
+  onValue(ref(db, 'players'), (snapshot)=>{
+    const data = snapshot.val() || {};
+    Object.values(data).forEach(p=> remove(ref(db,'players/'+p.id)));
+  }, { onlyOnce:true });
+
+  numbersContainer.innerHTML='';
+  message.textContent='';
+  playerScore=0;
+  isAlive=true;
+  updateGameStatus();
+}
+
+// Mise à jour du statut
+function updateGameStatus(){
+  scoreDisplay.textContent=`Score: ${playerScore}`;
+  statusDisplay.textContent=isAlive?'Survie: Oui':'Éliminé';
+}
