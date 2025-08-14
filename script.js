@@ -1,4 +1,4 @@
-// Génère un ID unique pour chaque joueur
+// Générer un ID unique pour chaque joueur
 let playerId = 'player_' + Math.floor(Math.random() * 100000);
 let score = 0;
 let alive = true;
@@ -10,7 +10,7 @@ const guessesRef = db.ref('guesses');
 // Ajouter ce joueur dans la DB
 playersRef.child(playerId).set({ score, alive, lastGuess: null });
 
-// Mise à jour de l'affichage
+// Mettre à jour l'affichage local
 function updateDisplay() {
   document.getElementById('score').textContent = score;
 }
@@ -34,15 +34,21 @@ function submitGuess() {
   const newGuessRef = guessesRef.push();
   newGuessRef.set({ playerId, guess });
 
-  // Enregistrer le dernier choix
+  // Enregistrer le dernier choix du joueur
   playersRef.child(playerId).update({ lastGuess: guess });
 
   input.value = '';
+  alert('Nombre soumis ! Attendez que la manche soit terminée.');
+}
 
-  // Vérifier si tous les joueurs ont joué (optionnel : ou timeout)
+// Terminer la manche et calculer les scores
+function endRound() {
   guessesRef.once('value', snapshot => {
     const allGuesses = snapshot.val() ? Object.values(snapshot.val()) : [];
-    if (allGuesses.length === 0) return;
+    if (allGuesses.length === 0) {
+      alert('Personne n’a joué cette manche !');
+      return;
+    }
 
     // Compter les doublons
     const counts = {};
@@ -57,8 +63,7 @@ function submitGuess() {
     let minDistance = Infinity;
 
     allGuesses.forEach(g => {
-      // Exclure doublons
-      if (counts[g.guess] > 1) return;
+      if (counts[g.guess] > 1) return; // exclure doublons
       const distance = Math.abs(g.guess - target);
       if (distance < minDistance) {
         minDistance = distance;
@@ -66,23 +71,17 @@ function submitGuess() {
       }
     });
 
-    // Mettre à jour scores
+    // Mettre à jour les scores
     allGuesses.forEach(g => {
       playersRef.child(g.playerId).once('value', snap => {
         let p = snap.val();
         if (!p) return;
 
-        // Si doublon
-        if (counts[g.guess] > 1) {
-          p.score -= 2;
-        } else if (g.playerId === closest) {
-          p.score += 1; // gagnant
-        } else {
-          p.score -= 1; // perdant
-        }
+        if (counts[g.guess] > 1) p.score -= 2; // doublons
+        else if (g.playerId === closest) p.score += 1; // gagnant
+        else p.score -= 1; // perdant
 
-        // Vérifier élimination
-        if (p.score <= -10) p.alive = false;
+        if (p.score <= -10) p.alive = false; // élimination
 
         playersRef.child(g.playerId).set(p);
 
@@ -96,6 +95,8 @@ function submitGuess() {
 
     // Nettoyer les guesses pour la manche suivante
     guessesRef.remove();
+
+    alert(`Manche terminée ! Moyenne×0.8 = ${target.toFixed(2)}`);
   });
 }
 
