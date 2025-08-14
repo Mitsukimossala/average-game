@@ -3,28 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jeu de la Moyenne</title>
+  <title>Jeu de la Moyenne - Alice in Borderland</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="page-nom" class="page">
-    <h1>Entre ton nom</h1>
-    <input type="text" id="nomInput" placeholder="Ton pseudo">
-    <button id="validerNom">Valider</button>
+  <!-- Page prénom -->
+  <div id="namePage">
+    <h1>Entrez votre prénom</h1>
+    <input type="text" id="playerNameInput" placeholder="Votre nom">
+    <button onclick="setPlayerName()">Valider</button>
   </div>
 
-  <div id="page-jeu" class="page hidden">
+  <!-- Page jeu -->
+  <div id="gamePage" style="display:none">
     <h1>Jeu de la Moyenne</h1>
-    <h2 id="nomJoueur"></h2>
-    <input type="number" id="nombreInput" placeholder="0-100" min="0" max="100">
-    <button id="validerNombre">Valider Nombre</button>
+    <h2 id="playerNameDisplay"></h2>
 
-    <div id="joueurs"></div>
-    <div id="resultat"></div>
+    <div id="playerInputSection">
+      <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
+      <button onclick="submitGuess()">Soumettre</button>
+    </div>
 
-    <button id="terminerManche">Terminer la Manche</button>
-    <button id="nouvelleManche">Nouvelle Manche</button>
-    <button id="nouvellePartie">Nouvelle Partie</button>
+    <div id="roundResults">
+      <button onclick="endRound()">Terminer la Manche</button>
+      <button onclick="newRound()">Nouvelle Manche</button>
+      <button onclick="newGame()">Nouvelle Partie</button>
+      <div id="numbersContainer"></div>
+      <p id="message"></p>
+    </div>
   </div>
 
   <script type="module" src="script.js"></script>
