@@ -1,21 +1,82 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Courier New', Courier, monospace;
+  background: #0c0c0c;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+#namePage, #gamePage {
   text-align: center;
+  background: rgba(20, 20, 20, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+  width: 400px;
 }
 
-.page {
-  margin-top: 50px;
-}
-
-.hidden {
-  display: none;
-}
-
-#joueurs {
-  margin-top: 20px;
+input[type="text"], input[type="number"] {
+  padding: 10px;
+  margin: 10px;
+  border: 2px solid #ff0000;
+  border-radius: 5px;
+  background: #222;
+  color: #fff;
 }
 
 button {
-  margin: 5px;
   padding: 10px 20px;
+  background: #ff0000;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #cc0000;
+}
+
+#numbersContainer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.player-number {
+  width: 60px;
+  height: 60px;
+  margin: 10px;
+  border: 2px solid #ff0000;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  background: #333;
+  color: #fff;
+  opacity: 0;
+  animation: fadeIn 1s forwards;
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+.winner {
+  background: #00ff00;
+  box-shadow: 0 0 15px #00ff00;
+}
+
+#message {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #ff0000;
 }
