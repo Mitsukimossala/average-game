@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
 import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
   authDomain: "average-game-448ac.firebaseapp.com",
@@ -14,7 +13,6 @@ const firebaseConfig = {
   measurementId: "G-N4LQ1KH5W0"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase(app);
@@ -40,6 +38,7 @@ function updateButtonAccess() {
     newGameBtn.style.display = 'none';
     endRoundBtn.style.display = 'none';
   }
+  document.getElementById('displayName').textContent = name;
 }
 
 // Soumettre un nombre
@@ -80,14 +79,11 @@ window.endRound = function(){
       if(diff<minDiff){ minDiff=diff; winner=p; }
     });
 
-    // Mettre à jour scores
     playerList.forEach(p=>{
-      let newScore = p.score;
-      if(p !== winner) newScore = Math.max(-10,newScore-1); // perdants -1
-      update(ref(db,'players/'+p.id),{score:newScore});
+      if(p !== winner) p.score = Math.max(-10,p.score-1); // perdants -1
+      update(ref(db,'players/'+p.id),{score:p.score});
     });
 
-    // Affichage final
     playersContainer.innerHTML='';
     playerList.forEach(p=>{
       const div = document.createElement('div');
@@ -102,7 +98,7 @@ window.endRound = function(){
   }, {onlyOnce:true});
 }
 
-// Nouvelle manche : efface seulement les nombres
+// Nouvelle manche
 window.newRound = function(){
   onValue(ref(db,'players'), snapshot=>{
     const data = snapshot.val() || {};
@@ -114,7 +110,7 @@ window.newRound = function(){
   message.textContent='';
 }
 
-// Nouvelle partie : supprime tout
+// Nouvelle partie
 window.newGame = function(){
   onValue(ref(db,'players'), snapshot=>{
     const data = snapshot.val() || {};
@@ -129,4 +125,3 @@ window.newGame = function(){
   document.getElementById('score').textContent=`Score: ${playerScore}`;
   document.getElementById('status').textContent=isAlive?'Survie: Oui':'Éliminé';
 }
-
