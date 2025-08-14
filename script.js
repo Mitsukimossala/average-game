@@ -1,105 +1,111 @@
+// Import Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getDatabase, ref, set, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
 
-// 🔹 Config Firebase
+// Firebase config
 const firebaseConfig = {
-  apiKey: "TON_API_KEY",
-  authDomain: "TON_PROJET.firebaseapp.com",
-  databaseURL: "https://TON_PROJET.firebaseio.com",
-  projectId: "TON_PROJET",
-  storageBucket: "TON_PROJET.appspot.com",
-  messagingSenderId: "TON_ID",
-  appId: "TON_APP_ID"
+  apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
+  authDomain: "average-game-448ac.firebaseapp.com",
+  databaseURL: "https://average-game-448ac-default-rtdb.firebaseio.com",
+  projectId: "average-game-448ac",
+  storageBucket: "average-game-448ac.appspot.com",
+  messagingSenderId: "184831556477",
+  appId: "1:184831556477:web:1ee0cffc102a50677caa14",
+  measurementId: "G-N4LQ1KH5W0"
 };
 
+// Init Firebase
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const db = getDatabase(app);
 
-let monNom = "";
+// --- Variables du jeu ---
+let playerName = '';
+let playerScore = 0;  // score initialisé à 0
+let players = {};     // joueurs en base
+let playerRef = null; // référence à ton joueur
 
-// 🔹 Page nom → Page jeu
-document.getElementById("validerNom").addEventListener("click", () => {
-  monNom = document.getElementById("nomInput").value.trim();
-  if (!monNom) return alert("Entre un nom !");
-  
-  set(ref(db, "players/" + monNom), { nombre: null, score: 0 });
-  
-  document.getElementById("nomJoueur").textContent = monNom;
-  document.getElementById("page-nom").classList.add("hidden");
-  document.getElementById("page-jeu").classList.remove("hidden");
+// --- Prénom ---
+function setPlayerName() {
+  const input = document.getElementById('playerNameInput');
+  const name = input.value.trim();
+  if(!name) { alert("Entrez un nom"); return; }
+  playerName = name;
+  document.getElementById('playerNameDisplay').textContent = name;
+  document.getElementById('namePage').style.display = 'none';
+  document.getElementById('gamePage').style.display = 'block';
+  initPlayerInDB();
+}
+
+// --- Créer ton joueur dans Firebase ---
+function initPlayerInDB() {
+  playerRef = push(ref(db, 'players'));
+  set(playerRef, { name: playerName, guess: 0, score: 0 });
+}
+
+// --- Soumettre un nombre ---
+function submitGuess() {
+  const guessInput = document.getElementById('playerGuess');
+  let guess = parseInt(guessInput.value);
+  if(isNaN(guess) || guess < 0 || guess > 100) { alert("Nombre 0-100"); return; }
+
+  update(playerRef, { guess });
+  guessInput.value = '';
+}
+
+// --- Écouter les joueurs en temps réel ---
+const playersContainer = document.getElementById('numbersContainer');
+onValue(ref(db, 'players'), snapshot => {
+  players = snapshot.val() || {};
+  playersContainer.innerHTML = '';
+  Object.values(players).forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'player-number';
+    div.innerHTML = `<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+    playersContainer.appendChild(div);
+  });
 });
 
-// 🔹 Valider nombre
-document.getElementById("validerNombre").addEventListener("click", () => {
-  let val = Number(document.getElementById("nombreInput").value);
-  if (isNaN(val) || val < 0 || val > 100) return alert("Nombre entre 0 et 100 !");
-  update(ref(db, "players/" + monNom), { nombre: val });
-});
+// --- Terminer la manche ---
+function endRound() {
+  const playerList = Object.entries(players).map(([id,p]) => ({...p, id}));
+  if(playerList.length < 2) { alert("2 joueurs min"); return; }
 
-// 🔹 Afficher joueurs en temps réel
-onValue(ref(db, "players"), snap => {
-  const data = snap.val() || {};
-  let html = "<h3>Joueurs</h3>";
-  for (let p in data) {
-    html += `<div>${p} : ${data[p].nombre ?? "?"} | Score: ${data[p].score}</div>`;
-  }
-  document.getElementById("joueurs").innerHTML = html;
-});
+  const sum = playerList.reduce((a,p) => a + p.guess, 0);
+  const target = sum / playerList.length * 0.8;
 
-// 🔹 Terminer manche
-document.getElementById("terminerManche").addEventListener("click", async () => {
-  const snap = await get(ref(db, "players"));
-  if (!snap.exists()) return;
-  const players = snap.val();
-  const nombres = Object.values(players).map(p => p.nombre).filter(v => v !== null);
+  const counts = {};
+  playerList.forEach(p => counts[p.guess] = (counts[p.guess]||0)+1);
 
-  if (nombres.length < 2) return alert("Il faut au moins 2 joueurs !");
-  
-  const moyenne = (nombres.reduce((a,b)=>a+b,0) / nombres.length) * 0.8;
-  
-  let diffMin = Infinity;
-  let gagnants = [];
+  let winner = null;
+  let minDiff = Infinity;
+  playerList.forEach(p => {
+    if(counts[p.guess]>1) return;
+    const diff = Math.abs(p.guess - target);
+    if(diff<minDiff) { minDiff=diff; winner=p; }
+  });
 
-  for (let p in players) {
-    let diff = Math.abs(players[p].nombre - moyenne);
-    if (diff < diffMin) {
-      diffMin = diff;
-      gagnants = [p];
-    } else if (diff === diffMin) {
-      gagnants.push(p);
-    }
-  }
+  playerList.forEach(p => {
+    let newScore = p.score;
+    if(counts[p.guess]>1) newScore = Math.max(-10, newScore-1);
+    else if(p===winner) newScore = Math.min(0, newScore); // gagnant aucun point
+    else newScore = Math.max(-10, newScore-1);            // perdant -1
+    update(ref(db,'players/'+p.id),{score:newScore});
+  });
 
-  // 🔹 Mise à jour des scores
-  for (let p in players) {
-    let score = players[p].score ?? 0;
-    if (gagnants.includes(p)) {
-      // Gagnant : pas de points gagnés
-    } else {
-      score -= 1; // Perdants : -1 point
-    }
-    if (score > 0) score = 0;      // Max = 0
-    if (score < -10) score = -10;  // Min = -10
-    await update(ref(db, "players/" + p), { score });
-  }
+  document.getElementById('message').textContent =
+    `Somme: ${sum}, Moyenne ×0.8: ${target.toFixed(2)}, Gagnant: ${winner?winner.name:'Aucun'}`;
+}
 
-  document.getElementById("resultat").textContent =
-    `Moyenne ×0.8 = ${moyenne.toFixed(2)} | Gagnant(s) : ${gagnants.join(", ")}`;
-});
+// --- Nouvelle Manche ---
+function newRound() {
+  Object.values(players).forEach(p => update(ref(db,'players/'+p.id),{guess:0}));
+  document.getElementById('message').textContent = '';
+}
 
-// 🔹 Nouvelle Manche
-document.getElementById("nouvelleManche").addEventListener("click", async () => {
-  const snap = await get(ref(db, "players"));
-  if (!snap.exists()) return;
-  const players = snap.val();
-  for (let p in players) {
-    await update(ref(db, "players/" + p), { nombre: null });
-  }
-  document.getElementById("resultat").textContent = "";
-});
-
-// 🔹 Nouvelle Partie
-document.getElementById("nouvellePartie").addEventListener("click", () => {
-  remove(ref(db, "players"));
-  document.getElementById("resultat").textContent = "";
-});
+// --- Nouvelle Partie ---
+function newGame() {
+  Object.values(players).forEach(p => update(ref(db,'players/'+p.id),{score:0, guess:0}));
+  document.getElementById('message').textContent = '';
+}
