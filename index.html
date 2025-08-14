@@ -5,26 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Average Game</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    #game { text-align: center; width: 400px; margin: auto; }
+    .player-number { display: inline-block; margin: 10px; position: relative; }
+    .player-name { position: absolute; top: -20px; width: 100%; text-align: center; font-weight: bold; }
+    .winner { color: green; font-weight: bold; font-size: 1.2em; }
+    .animation { transition: all 1s ease; }
+  </style>
 </head>
 <body>
   <div id="game">
     <h1>Le Jeu de la Moyenne</h1>
+    <p>Entrez votre nom :</p>
+    <input type="text" id="playerName" placeholder="Nom">
     <p>Choisis un nombre entre 0 et 100</p>
     <input type="number" id="playerInput" min="0" max="100">
     <div>
       <button onclick="submitGuess()">Soumettre</button>
       <button onclick="endRound()">Terminer la manche</button>
     </div>
+    <div id="numbersContainer"></div>
     <p>Score: <span id="score">0</span></p>
     <p id="status"></p>
+    <p id="message"></p>
   </div>
-
-  <!-- Ton script multijoueur -->
   <script src="script.js"></script>
 </body>
 </html>
-
