@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Average Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game">
+        <h1>Le Jeu de la Moyenne</h1>
+        <p>Choisis un nombre entre 1 et 100</p>
+        <input type="number" id="playerInput" min="1" max="100">
+        <button onclick="submitGuess()">Soumettre</button>
+        <p id="result"></p>
+        <p id="lives">Vies restantes: 100</p>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
