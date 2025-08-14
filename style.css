@@ -1,84 +1,83 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Courier New', Courier, monospace;
+  background: #0c0c0c;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
-  background-color: #f0f4f8;
+  overflow: hidden;
 }
 
 #game {
   text-align: center;
-  background-color: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-  width: 360px;
+  background: rgba(20, 20, 20, 0.9);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+  width: 400px;
 }
 
-input {
+input[type="text"], input[type="number"] {
   padding: 10px;
-  font-size: 16px;
-  margin: 10px 0;
-  width: 60%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  margin: 10px;
+  border: 2px solid #ff0000;
+  border-radius: 5px;
+  background: #222;
+  color: #fff;
 }
 
 button {
   padding: 10px 20px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
+  background: #ff0000;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
+  color: #fff;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.3s;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background: #cc0000;
 }
 
-#leaderboard {
-  text-align: left;
-  max-height: 150px;
-  overflow-y: auto;
-  padding-left: 20px;
-}
-
-.life-heart {
-  color: red;
-  font-size: 18px;
-  margin-right: 2px;
+#numbersContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .player-number {
-  display: inline-block;
-  margin: 10px;
   width: 60px;
   height: 60px;
-  line-height: 60px;
-  border: 2px solid #ff003c;
+  margin: 10px;
+  border: 2px solid #ff0000;
   border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  background: #333;
   color: #fff;
-  background-color: #222;
-  text-align: center;
-  position: relative;
+  opacity: 0;
+  animation: fadeIn 1s forwards;
 }
 
-.player-name {
-  position: absolute;
-  top: -20px;
-  width: 100%;
-  text-align: center;
-  color: #ff003c;
-  font-weight: bold;
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
 }
 
 .winner {
-  background-color: #00ff00;
+  background: #00ff00;
   box-shadow: 0 0 15px #00ff00;
+}
+
+#message {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #ff0000;
 }
 
