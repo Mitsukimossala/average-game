@@ -19,10 +19,6 @@ body {
   width: 400px;
 }
 
-#pageName.active { display: block; }
-#pageGame { display: none; }
-#pageGame.active { display: block; }
-
 input[type="text"], input[type="number"] {
   padding: 10px;
   margin: 10px;
@@ -40,7 +36,6 @@ button {
   color: #fff;
   cursor: pointer;
   transition: background 0.3s;
-  margin: 5px;
 }
 
 button:hover {
@@ -50,8 +45,8 @@ button:hover {
 #numbersContainer {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
   flex-wrap: wrap;
+  margin-top: 20px;
 }
 
 .player-number {
@@ -75,8 +70,13 @@ button:hover {
 }
 
 .winner {
-  background: green;
-  box-shadow: 0 0 15px green;
+  background: #00ff00;
+  box-shadow: 0 0 15px #00ff00;
+}
+
+.loser {
+  background: #ff0000;
+  box-shadow: 0 0 15px #ff0000;
 }
 
 #message {
