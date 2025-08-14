@@ -7,20 +7,21 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- PAGE NOM -->
-  <div id="pageName" class="active">
-    <h1>Jeu de la Moyenne</h1>
+  <!-- Page 1 : Saisie du nom -->
+  <div id="pageName">
+    <h1>Bienvenue</h1>
     <input type="text" id="playerNameInput" placeholder="Entrez votre nom">
-    <button onclick="submitName()">Valider</button>
+    <button onclick="startGame()">Commencer</button>
   </div>
 
-  <!-- PAGE JEU -->
-  <div id="pageGame">
+  <!-- Page 2 : Jeu -->
+  <div id="pageGame" style="display:none;">
     <h1>Jeu de la Moyenne</h1>
-    <h2 id="playerDisplay"></h2>
+    <h2 id="playerNameDisplay"></h2>
+
     <div id="playerInputSection">
       <input type="number" id="playerGuess" placeholder="Choisissez un nombre (0-100)" min="0" max="100">
-      <button onclick="submitGuess()">Soumettre</button>
+      <button id="submitGuessBtn" onclick="submitGuess()">Soumettre</button>
     </div>
 
     <div id="gameStatus">
@@ -29,9 +30,8 @@
     </div>
 
     <div id="roundResults">
-      <button id="endRoundBtn" onclick="endRound()">Terminer la Manche</button>
-      <button id="newRoundBtn" onclick="newRound()">Nouvelle Manche</button>
-      <button id="newGameBtn" onclick="newGame()">Nouvelle Partie</button>
+      <button id="endRoundBtn" onclick="endRound()" style="display:none;">Terminer la Manche</button>
+      <button id="newRoundBtn" onclick="newRound()" style="display:none;">Nouvelle Manche</button>
       <div id="numbersContainer"></div>
       <p id="message"></p>
     </div>
