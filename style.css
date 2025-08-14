@@ -58,16 +58,12 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 16px;
+  font-size: 20px;
   background: #333;
   color: #fff;
   opacity: 0;
   animation: fadeIn 1s forwards;
   flex-direction: column;
-}
-
-.player-number .player-name {
-  font-size: 12px;
 }
 
 @keyframes fadeIn {
