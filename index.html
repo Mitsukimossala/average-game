@@ -1,113 +1,30 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeu de la Moyenne - Alice in Borderland</title>
-    <meta name="description" content="Un jeu multijoueur stratégique inspiré d'Alice in Borderland. Devinez la moyenne et survivez dans l'arène.">
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balance Scale - Alice in Borderland</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>Connexion en cours...</p>
+
+<div class="page-container">
+  <div class="game-card">
+    <h1 class="gradient-text">Balance Scale</h1>
+    <div class="subtitle">Entrez vos nombres et voyez qui se rapproche le plus de l'average × 0.8</div>
+
+    <div class="input-section">
+      <div class="number-input-container" id="players-inputs"></div>
+      <button class="btn-primary glow" id="submit-guess">Soumettre</button>
+      <button class="btn-secondary glow" id="new-round">Nouvelle manche</button>
     </div>
 
-    <!-- PAGE NOM -->
-    <div id="pageName" class="page-container">
-        <div class="game-card">
-            <h1 class="gradient-text">Bienvenue dans l'Arène</h1>
-            <p class="subtitle">Jeu de la Moyenne - Alice in Borderland Edition</p>
-            
-            <div class="input-container">
-                <input type="text" 
-                       id="playerNameInput" 
-                       placeholder="Entrez votre nom de joueur" 
-                       maxlength="20"
-                       class="neon-input">
-                <div id="nameError" class="error-message"></div>
-            </div>
-            
-            <button id="startGameBtn" class="btn-primary glow" onclick="startGame()">
-                Entrer dans l'Arène
-            </button>
-            
-            <div class="game-rules">
-                <h3>Règles du Jeu</h3>
-                <ul>
-                    <li>Choisissez un nombre entre 0 et 100</li>
-                    <li>Le but : s'approcher de la moyenne × 0.8</li>
-                    <li>Score initial : 0 points</li>
-                    <li>Perdre une manche : -1 point</li>
-                    <li>Élimination à -10 points</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <div class="players-grid" id="players-grid"></div>
+    <div class="result-message" id="result-message"></div>
+  </div>
+</div>
 
-    <!-- PAGE JEU -->
-    <div id="pageGame" class="page-container" style="display:none">
-        <div class="game-header">
-            <h1 class="gradient-text">Jeu de la Moyenne</h1>
-            <div class="player-info">
-                <h2 id="playerNameDisplay" class="player-name"></h2>
-                <div class="status-container">
-                    <span id="score" class="score-display">Score: 0</span>
-                    <span id="status" class="status-display">Survie: Oui</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section de saisie -->
-        <div id="playerInputSection" class="input-section">
-            <div class="number-input-container">
-                <input type="number" 
-                       id="playerGuess" 
-                       placeholder="Choisissez un nombre (0-100)" 
-                       min="0" 
-                       max="100"
-                       class="neon-input number-input">
-                <button id="submitBtn" class="btn-secondary glow" onclick="submitGuess()">
-                    Soumettre
-                </button>
-            </div>
-            <div id="guessError" class="error-message"></div>
-            <div id="submitFeedback" class="feedback-message"></div>
-        </div>
-
-        <!-- Contrôles maître (pour joueur "Im") -->
-        <div id="masterControls" class="master-controls" style="display:none">
-            <button id="endRoundBtn" class="btn-success glow" onclick="endRound()">
-                Terminer la Manche
-            </button>
-            <button id="newRoundBtn" class="btn-warning glow" onclick="newRound()" style="display:none">
-                Nouvelle Manche
-            </button>
-            <button id="newGameBtn" class="btn-danger glow" onclick="newGame()" style="display:none">
-                Nouvelle Partie
-            </button>
-        </div>
-
-        <!-- Résultats -->
-        <div id="roundResults" class="results-container">
-            <div id="numbersContainer" class="players-grid"></div>
-            <div id="message" class="result-message"></div>
-            <div id="roundInfo" class="round-info"></div>
-        </div>
-
-        <!-- Bouton retour -->
-        <button id="backBtn" class="btn-outline" onclick="goBack()">
-            Retour à l'accueil
-        </button>
-    </div>
-
-    <!-- Toast pour notifications -->
-    <div id="toast" class="toast"></div>
-
-    <script type="module" src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
