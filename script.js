@@ -1,80 +1,148 @@
-const players = [
-  { name: "Joueur 1", score: 0, guess: null },
-  { name: "Joueur 2", score: 0, guess: null },
-  { name: "Joueur 3", score: 0, guess: null },
-  { name: "Joueur 4", score: 0, guess: null }
-];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
+import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-const inputsContainer = document.getElementById("players-inputs");
-const gridContainer = document.getElementById("players-grid");
-const submitBtn = document.getElementById("submit-guess");
-const newRoundBtn = document.getElementById("new-round");
-const resultMessage = document.getElementById("result-message");
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCPJfiPuXV_jWD5hM_x7AB2X9gtsX6lBGE",
+  authDomain: "average-game-448ac.firebaseapp.com",
+  databaseURL: "https://average-game-448ac-default-rtdb.firebaseio.com",
+  projectId: "average-game-448ac",
+  storageBucket: "average-game-448ac.appspot.com",
+  messagingSenderId: "184831556477",
+  appId: "1:184831556477:web:1ee0cffc102a50677caa14",
+  measurementId: "G-N4LQ1KH5W0"
+};
 
-function createPlayerInputs() {
-  inputsContainer.innerHTML = "";
-  players.forEach((p, i) => {
-    const div = document.createElement("div");
-    div.classList.add("number-input");
-    div.innerHTML = `<input type="number" min="0" max="100" placeholder="${p.name}" id="input-${i}" class="neon-input">`;
-    inputsContainer.appendChild(div);
-  });
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getDatabase(app);
+
+// Elements
+const pageName = document.getElementById('pageName');
+const pageGame = document.getElementById('pageGame');
+const playerNameInput = document.getElementById('playerNameInput');
+const playerDisplay = document.getElementById('playerDisplay');
+const guessInput = document.getElementById('playerGuess');
+const numbersContainer = document.getElementById('numbersContainer');
+const messageEl = document.getElementById('message');
+const scoreEl = document.getElementById('score');
+const statusEl = document.getElementById('status');
+const endRoundBtn = document.getElementById('endRoundBtn');
+const newRoundBtn = document.getElementById('newRoundBtn');
+const newGameBtn = document.getElementById('newGameBtn');
+
+let playerName = '';
+let playerScore = 10;
+
+// SUBMIT NAME → GAME
+window.submitName = function() {
+  const name = playerNameInput.value.trim();
+  if(!name){ alert('Entrez un nom valide'); return; }
+  playerName=name;
+  playerDisplay.textContent = playerName;
+
+  // Show buttons only for Im
+  if(playerName==='Im'){
+    endRoundBtn.style.display='inline-block';
+    newRoundBtn.style.display='inline-block';
+  }
+
+  pageName.classList.remove('active');
+  pageGame.classList.add('active');
 }
 
-function createPlayerCircles() {
-  gridContainer.innerHTML = "";
-  players.forEach((p, i) => {
-    const circle = document.createElement("div");
-    circle.classList.add("player-circle");
-    circle.id = `circle-${i}`;
-    circle.innerHTML = `
-      <div class="player-name">${p.name}</div>
-      <div class="player-score">Score: ${p.score}</div>
-      <div class="player-guess">${p.guess !== null ? p.guess : "-"}</div>
-    `;
-    gridContainer.appendChild(circle);
+// SUBMIT GUESS
+window.submitGuess = function(){
+  const guess = parseInt(guessInput.value);
+  if(isNaN(guess)||guess<0||guess>100){ alert('Nombre invalide'); return; }
+
+  set(ref(db,'players/'+playerName),{
+    name: playerName,
+    guess: guess,
+    score: playerScore
   });
+  guessInput.value='';
 }
 
-function calculateWinner() {
-  const guesses = players.map((p, i) => {
-    const val = parseFloat(document.getElementById(`input-${i}`).value);
-    p.guess = isNaN(val) ? 0 : val;
-    return p.guess;
+// LISTEN PLAYERS
+onValue(ref(db,'players'), snapshot=>{
+  const data = snapshot.val()||{};
+  numbersContainer.innerHTML='';
+  Object.values(data).forEach(p=>{
+    if(p.name && p.guess!==undefined){
+      const div=document.createElement('div');
+      div.className='player-number';
+      div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+      numbersContainer.appendChild(div);
+    }
   });
-  const avg = guesses.reduce((a,b)=>a+b,0)/guesses.length * 0.8;
-  let closest = players[0];
-  players.forEach(p => {
-    if(Math.abs(p.guess - avg) < Math.abs(closest.guess - avg)) closest = p;
-  });
-  players.forEach(p => {
-    if(p === closest) p.score += 1;
-    else p.score -= 1;
-  });
-  resultMessage.textContent = `Average ×0.8 = ${avg.toFixed(2)}. Gagnant: ${closest.name}`;
-  updatePlayerCircles();
-}
-
-function updatePlayerCircles() {
-  players.forEach((p, i) => {
-    const circle = document.getElementById(`circle-${i}`);
-    circle.querySelector(".player-score").textContent = `Score: ${p.score}`;
-    circle.querySelector(".player-guess").textContent = p.guess;
-    circle.classList.remove("winner", "loser");
-    if(p.score <= -10) circle.classList.add("eliminated");
-  });
-  const winner = players.reduce((acc, p) => p.guess !== null && Math.abs(p.guess - (players.reduce((a,b)=>a+b.guess,0)/players.length*0.8)) < Math.abs(acc.guess - (players.reduce((a,b)=>a+b.guess,0)/players.length*0.8)) ? p : acc, players[0]);
-  const winnerIndex = players.indexOf(winner);
-  document.getElementById(`circle-${winnerIndex}`).classList.add("winner");
-}
-
-submitBtn.addEventListener("click", calculateWinner);
-newRoundBtn.addEventListener("click", () => {
-  createPlayerInputs();
-  players.forEach(p => p.guess = null);
-  resultMessage.textContent = "";
-  updatePlayerCircles();
 });
 
-createPlayerInputs();
-createPlayerCircles();
+// END ROUND
+window.endRound=function(){
+  onValue(ref(db,'players'), snapshot=>{
+    const data=snapshot.val()||{};
+    const arr=Object.values(data);
+    if(arr.length<2){ alert('Au moins 2 joueurs'); return; }
+
+    const sum=arr.reduce((a,p)=>a+p.guess,0);
+    const target=sum/arr.length*0.8;
+
+    const counts={};
+    arr.forEach(p=>counts[p.guess]=(counts[p.guess]||0)+1);
+
+    let winner=null;
+    let minDiff=Infinity;
+    arr.forEach(p=>{
+      if(counts[p.guess]>1) return;
+      const diff=Math.abs(p.guess-target);
+      if(diff<minDiff){ minDiff=diff; winner=p; }
+    });
+
+    arr.forEach(p=>{
+      if(counts[p.guess]>1) p.score-=1;
+      else if(p!==winner) p.score-=1;
+      update(ref(db,'players/'+p.name), {score:p.score});
+    });
+
+    numbersContainer.innerHTML='';
+    arr.forEach(p=>{
+      if(!p.name||p.guess===undefined) return;
+      const div=document.createElement('div');
+      div.className='player-number';
+      div.innerHTML=`<div class="player-name">${p.name}</div>${p.guess} (${p.score})`;
+      div.style.backgroundColor=(p===winner)?'green':'red';
+      numbersContainer.appendChild(div);
+    });
+
+    messageEl.textContent=`Somme: ${sum}, Moyenne ×0.8: ${target.toFixed(2)}, Gagnant: ${winner?winner.name:'Aucun'}`;
+  },{onlyOnce:true});
+}
+
+// NEW ROUND
+window.newRound=function(){
+  numbersContainer.innerHTML='';
+  messageEl.textContent='';
+  guessInput.value='';
+  onValue(ref(db,'players'), snapshot=>{
+    const data=snapshot.val()||{};
+    Object.keys(data).forEach(p=>{
+      update(ref(db,'players/'+p),{guess:undefined});
+    });
+  },{onlyOnce:true});
+}
+
+// NEW GAME
+window.newGame=function(){
+  numbersContainer.innerHTML='';
+  messageEl.textContent='';
+  guessInput.value='';
+  onValue(ref(db,'players'), snapshot=>{
+    const data=snapshot.val()||{};
+    Object.keys(data).forEach(p=>{
+      update(ref(db,'players/'+p), {score:10, guess:undefined});
+    });
+  },{onlyOnce:true});
+}
